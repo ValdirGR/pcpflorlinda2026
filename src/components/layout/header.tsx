@@ -12,6 +12,7 @@ const pageTitles: Record<string, string> = {
   "/referencias": "Referências",
   "/producao": "Produção",
   "/relatorios": "Relatórios",
+  "/admin": "Administração",
 };
 
 export default function Header() {
