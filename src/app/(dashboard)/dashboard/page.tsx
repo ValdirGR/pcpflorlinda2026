@@ -156,6 +156,8 @@ export default async function DashboardPage() {
     <div className="space-y-6">
       <StatsCards stats={data.stats} />
 
+      <CollectionProgress collections={data.collectionProgress} />
+
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2">
           <ProductionChart data={data.chartData} />
@@ -164,8 +166,6 @@ export default async function DashboardPage() {
           <RecentEtapas etapas={data.etapas} />
         </div>
       </div>
-
-      <CollectionProgress collections={data.collectionProgress} />
 
       <div>
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
