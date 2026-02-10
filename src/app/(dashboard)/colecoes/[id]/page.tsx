@@ -1,7 +1,8 @@
 import prisma from "@/lib/prisma";
 import Link from "next/link";
+import Image from "next/image";
 import { formatDate, getStatusColor, getStatusLabel, calcPercentage, isOverdue } from "@/lib/utils";
-import { ArrowLeft, Pencil, Tag, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Pencil, Tag, AlertTriangle, ImageOff } from "lucide-react";
 import { auth } from "@/auth";
 import { notFound } from "next/navigation";
 
@@ -135,40 +136,60 @@ export default async function ColecaoDetalhePage({ params }: PageProps) {
               <Link
                 key={ref.id}
                 href={`/referencias/${ref.id}`}
-                className="group p-4 rounded-lg border border-gray-100 hover:border-pink-200 hover:shadow-md transition-all"
+                className="group rounded-lg border border-gray-100 hover:border-pink-200 hover:shadow-md transition-all overflow-hidden"
               >
-                <div className="flex items-start justify-between mb-2">
-                  <span className="font-mono text-sm font-medium text-pink-600">
-                    {ref.codigo}
-                  </span>
-                  <div className="flex items-center gap-1">
-                    {hasOverdue && (
-                      <AlertTriangle className="h-4 w-4 text-red-500" />
-                    )}
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${getStatusColor(
-                        ref.status || "normal"
-                      )}`}
-                    >
-                      {getStatusLabel(ref.status || "normal")}
-                    </span>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-900 truncate">{ref.nome}</p>
-                <div className="mt-3">
-                  <div className="w-full bg-gray-100 rounded-full h-1.5">
-                    <div
-                      className={`h-1.5 rounded-full ${
-                        refPct >= 100 ? "bg-green-500" : "bg-pink-500"
-                      }`}
-                      style={{ width: `${Math.min(refPct, 100)}%` }}
+                {/* Foto da referência — proporção 600×400 (3:2) */}
+                <div className="relative w-full" style={{ aspectRatio: "600 / 400" }}>
+                  {ref.foto ? (
+                    <Image
+                      src={`https://florlinda.store/pcpflorlinda/uploads/referencias/${ref.foto}`}
+                      alt={ref.nome}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-300"
                     />
-                  </div>
-                  <div className="flex justify-between text-xs text-gray-400 mt-1">
-                    <span>
-                      {ref.quantidade_produzida || 0}/{ref.previsao_producao || 0}
+                  ) : (
+                    <div className="absolute inset-0 bg-gray-50 flex flex-col items-center justify-center text-gray-300">
+                      <ImageOff className="h-8 w-8 mb-1" />
+                      <span className="text-[10px]">Sem foto</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-4">
+                  <div className="flex items-start justify-between mb-2">
+                    <span className="font-mono text-sm font-medium text-pink-600">
+                      {ref.codigo}
                     </span>
-                    <span>{refPct}%</span>
+                    <div className="flex items-center gap-1">
+                      {hasOverdue && (
+                        <AlertTriangle className="h-4 w-4 text-red-500" />
+                      )}
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-medium ${getStatusColor(
+                          ref.status || "normal"
+                        )}`}
+                      >
+                        {getStatusLabel(ref.status || "normal")}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-sm text-gray-900 truncate">{ref.nome}</p>
+                  <div className="mt-3">
+                    <div className="w-full bg-gray-100 rounded-full h-1.5">
+                      <div
+                        className={`h-1.5 rounded-full ${
+                          refPct >= 100 ? "bg-green-500" : "bg-pink-500"
+                        }`}
+                        style={{ width: `${Math.min(refPct, 100)}%` }}
+                      />
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-400 mt-1">
+                      <span>
+                        {ref.quantidade_produzida || 0}/{ref.previsao_producao || 0}
+                      </span>
+                      <span>{refPct}%</span>
+                    </div>
                   </div>
                 </div>
               </Link>
