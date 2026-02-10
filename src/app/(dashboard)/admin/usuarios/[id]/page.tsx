@@ -1,4 +1,4 @@
-import { obterUsuario } from "@/app/admin-actions";
+import { obterUsuario } from "@/app/admin-queries";
 import AdminGuard from "@/components/admin/admin-guard";
 import { EditarUsuarioForm } from "./form";
 import Link from "next/link";

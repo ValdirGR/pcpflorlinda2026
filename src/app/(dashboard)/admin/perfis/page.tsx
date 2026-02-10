@@ -1,4 +1,4 @@
-import { listarPerfis, listarPermissoes } from "@/app/admin-actions";
+import { listarPerfis, listarPermissoes } from "@/app/admin-queries";
 import AdminGuard from "@/components/admin/admin-guard";
 import Link from "next/link";
 import { ArrowLeft, KeyRound, Shield, Users, Lock } from "lucide-react";

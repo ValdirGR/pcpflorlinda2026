@@ -1,4 +1,4 @@
-import { obterEstatisticasAdmin } from "@/app/admin-actions";
+import { obterEstatisticasAdmin } from "@/app/admin-queries";
 import AdminGuard from "@/components/admin/admin-guard";
 import Link from "next/link";
 import {

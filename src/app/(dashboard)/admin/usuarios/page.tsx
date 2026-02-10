@@ -1,4 +1,4 @@
-import { listarUsuarios } from "@/app/admin-actions";
+import { listarUsuarios } from "@/app/admin-queries";
 import AdminGuard from "@/components/admin/admin-guard";
 import { UserTable } from "@/components/admin/user-table";
 import Link from "next/link";

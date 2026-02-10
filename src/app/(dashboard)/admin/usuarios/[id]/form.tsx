@@ -24,14 +24,6 @@ interface UsuarioData {
   ativo: boolean;
   created_at: Date;
   updated_at: Date;
-  perfis: Array<{
-    id: number;
-    perfil: {
-      id: number;
-      nome: string;
-      descricao: string | null;
-    };
-  }>;
 }
 
 export function EditarUsuarioForm({ usuario }: { usuario: UsuarioData }) {
@@ -128,23 +120,6 @@ export function EditarUsuarioForm({ usuario }: { usuario: UsuarioData }) {
             {usuario.ativo ? "Ativo" : "Inativo"}
           </span>
         </div>
-
-        {/* Perfis */}
-        {usuario.perfis.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-gray-100">
-            <p className="text-xs font-medium text-gray-500 mb-2">Perfis associados:</p>
-            <div className="flex flex-wrap gap-2">
-              {usuario.perfis.map((up) => (
-                <span
-                  key={up.id}
-                  className="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-full text-xs font-medium"
-                >
-                  {up.perfil.nome}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Edit Form */}
