@@ -36,7 +36,7 @@ export function ReferenciasGrid({ referencias }: ReferenciasGridProps) {
             <div className="relative h-40 bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center overflow-hidden">
               {ref.foto ? (
                 <img
-                  src={`/uploads/referencias/${ref.foto}`}
+                  src={`https://florlinda.store/pcpflorlinda/uploads/referencias/${ref.foto}`}
                   alt={ref.nome}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   onError={(e) => {

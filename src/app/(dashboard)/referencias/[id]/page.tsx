@@ -215,7 +215,7 @@ export default async function ReferenciaDetalhePage({ params }: PageProps) {
             <div className="h-64 bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center">
               {referencia.foto ? (
                 <img
-                  src={`/uploads/referencias/${referencia.foto}`}
+                  src={`https://florlinda.store/pcpflorlinda/uploads/referencias/${referencia.foto}`}
                   alt={referencia.nome}
                   className="w-full h-full object-cover"
                 />
