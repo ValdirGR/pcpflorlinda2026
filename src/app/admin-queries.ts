@@ -62,7 +62,6 @@ export async function obterEstatisticasAdmin() {
     totalColecoes,
     totalReferencias,
     totalProducao,
-    totalPerfis,
   ] = await Promise.all([
     prisma.usuario.count(),
     prisma.usuario.count({ where: { ativo: true } }),
@@ -73,7 +72,6 @@ export async function obterEstatisticasAdmin() {
     prisma.colecao.count(),
     prisma.referencia.count(),
     prisma.producao.count(),
-    prisma.perfil.count(),
   ]);
 
   const ultimosUsuarios = await prisma.usuario.findMany({
@@ -99,36 +97,6 @@ export async function obterEstatisticasAdmin() {
     totalColecoes,
     totalReferencias,
     totalProducao,
-    totalPerfis,
     ultimosUsuarios,
   };
-}
-
-export async function listarPerfis() {
-  await requireAdmin();
-
-  return prisma.perfil.findMany({
-    include: {
-      _count: {
-        select: {
-          usuarios: true,
-          permissoes: true,
-        },
-      },
-      permissoes: {
-        include: {
-          permissao: true,
-        },
-      },
-    },
-    orderBy: { created_at: "desc" },
-  });
-}
-
-export async function listarPermissoes() {
-  await requireAdmin();
-
-  return prisma.permissao.findMany({
-    orderBy: { nome: "asc" },
-  });
 }

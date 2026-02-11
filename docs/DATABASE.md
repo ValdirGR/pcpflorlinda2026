@@ -47,30 +47,18 @@
                        │ updated_at       │
                        └──────────────────┘
 
-┌──────────────┐       ┌──────────────────┐       ┌─────────────────┐
-│   usuarios   │ N───N │  usuario_perfil  │ N───1 │     perfis      │
-│──────────────│       │──────────────────│       │─────────────────│
-│ id (PK)      │       │ id (PK)          │       │ id (PK)         │
-│ nome         │       │ usuario_id       │       │ nome            │
-│ email (UQ)   │       │ perfil_id        │       │ descricao       │
-│ senha        │       └──────────────────┘       │ created_at      │
-│ nivel (ENUM) │                                  │ updated_at      │
-│ ativo        │       ┌──────────────────┐       └───────┬─────────┘
-│ created_at   │       │ perfil_permissao │               │
-│ updated_at   │       │──────────────────│         1───N │
-└──────────────┘       │ id (PK)          │◄──────────────┘
-                       │ perfil_id        │
-                       │ permissao_id     │───1───┐
-                       └──────────────────┘       │
-                                          ┌───────▼─────────┐
-                                          │   permissoes    │
-                                          │─────────────────│
-                                          │ id (PK)         │
-                                          │ nome            │
-                                          │ descricao       │
-                                          │ created_at      │
-                                          │ updated_at      │
-                                          └─────────────────┘
+┌──────────────┐
+│   usuarios   │
+│──────────────│
+│ id (PK)      │
+│ nome         │
+│ email (UQ)   │
+│ senha        │
+│ nivel (ENUM) │
+│ ativo        │
+│ created_at   │
+│ updated_at   │
+└──────────────┘
 ```
 
 ---
@@ -207,42 +195,6 @@
 | `created_at` | TIMESTAMP | NO | CURRENT_TIMESTAMP | Data de criação |
 | `updated_at` | TIMESTAMP | NO | CURRENT_TIMESTAMP | Data de atualização |
 
-### 3.6 `perfis`
-
-| Coluna | Tipo | Null | Default | Descrição |
-|--------|------|------|---------|-----------|
-| `id` | INT (PK) | NO | AUTO_INCREMENT | ID do perfil |
-| `nome` | VARCHAR(255) | NO | — | Nome do perfil |
-| `descricao` | TEXT | YES | NULL | Descrição |
-| `created_at` | DATETIME | NO | CURRENT_TIMESTAMP | Data de criação |
-| `updated_at` | DATETIME | NO | CURRENT_TIMESTAMP | Data de atualização |
-
-### 3.7 `permissoes`
-
-| Coluna | Tipo | Null | Default | Descrição |
-|--------|------|------|---------|-----------|
-| `id` | INT (PK) | NO | AUTO_INCREMENT | ID da permissão |
-| `nome` | VARCHAR(255) | NO | — | Nome da permissão |
-| `descricao` | TEXT | YES | NULL | Descrição |
-| `created_at` | DATETIME | NO | CURRENT_TIMESTAMP | Data de criação |
-| `updated_at` | DATETIME | NO | CURRENT_TIMESTAMP | Data de atualização |
-
-### 3.8 `perfil_permissao` (pivot)
-
-| Coluna | Tipo | Null | Descrição |
-|--------|------|------|-----------|
-| `id` | INT (PK) | NO | ID |
-| `perfil_id` | INT (FK) | NO | FK para `perfis.id` |
-| `permissao_id` | INT (FK) | NO | FK para `permissoes.id` |
-
-### 3.9 `usuario_perfil` (pivot)
-
-| Coluna | Tipo | Null | Descrição |
-|--------|------|------|-----------|
-| `id` | INT (PK) | NO | ID |
-| `usuario_id` | INT (FK) | NO | FK para `usuarios.id` |
-| `perfil_id` | INT (FK) | NO | FK para `perfis.id` |
-
 ---
 
 ## 4. Relacionamentos
@@ -252,10 +204,6 @@
 | `colecoes` | `referencias` | 1:N | `referencias.colecao_id` |
 | `referencias` | `etapas_producao` | 1:N | `etapas_producao.referencia_id` |
 | `referencias` | `producao` | 1:N | `producao.referencia_id` |
-| `usuarios` | `usuario_perfil` | 1:N | `usuario_perfil.usuario_id` |
-| `perfis` | `usuario_perfil` | 1:N | `usuario_perfil.perfil_id` |
-| `perfis` | `perfil_permissao` | 1:N | `perfil_permissao.perfil_id` |
-| `permissoes` | `perfil_permissao` | 1:N | `perfil_permissao.permissao_id` |
 
 ---
 

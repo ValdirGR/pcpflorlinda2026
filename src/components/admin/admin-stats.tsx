@@ -22,7 +22,6 @@ interface AdminStatsProps {
     totalColecoes: number;
     totalReferencias: number;
     totalProducao: number;
-    totalPerfis: number;
   };
 }
 
