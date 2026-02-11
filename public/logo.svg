@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ec4899"/>
+      <stop offset="100%" stop-color="#f43f5e"/>
+    </linearGradient>
+  </defs>
+  <rect width="100" height="100" rx="20" fill="url(#bg)"/>
+  <!-- Stylized woven/macramê pattern -->
+  <g stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round">
+    <!-- Vertical center line -->
+    <line x1="50" y1="18" x2="50" y2="82"/>
+    <!-- Top diamond -->
+    <path d="M50 18 L62 30 L50 42 L38 30 Z"/>
+    <!-- Middle diamond -->
+    <path d="M50 34 L66 50 L50 66 L34 50 Z"/>
+    <!-- Bottom diamond -->
+    <path d="M50 58 L62 70 L50 82 L38 70 Z"/>
+    <!-- Side curves left -->
+    <path d="M34 50 Q24 40 34 30"/>
+    <path d="M34 50 Q24 60 34 70"/>
+    <!-- Side curves right -->
+    <path d="M66 50 Q76 40 66 30"/>
+    <path d="M66 50 Q76 60 66 70"/>
+    <!-- Small dots at intersections -->
+    <circle cx="50" cy="18" r="2.5" fill="white"/>
+    <circle cx="50" cy="50" r="3" fill="white"/>
+    <circle cx="50" cy="82" r="2.5" fill="white"/>
+    <circle cx="34" cy="30" r="2" fill="white"/>
+    <circle cx="66" cy="30" r="2" fill="white"/>
+    <circle cx="34" cy="70" r="2" fill="white"/>
+    <circle cx="66" cy="70" r="2" fill="white"/>
+  </g>
+</svg>

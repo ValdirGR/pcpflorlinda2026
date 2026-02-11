@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { cn } from "@/lib/utils";
@@ -13,7 +14,6 @@ import {
   LogOut,
   Menu,
   X,
-  Flower2,
   ChevronLeft,
   Shield,
   Monitor,
@@ -63,9 +63,13 @@ export default function Sidebar() {
         {/* Logo */}
         <div className="flex items-center justify-between px-4 h-16 border-b border-slate-700/50">
           <Link href="/dashboard" className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-pink-400 to-rose-500 p-2 rounded-lg">
-              <Flower2 className="h-5 w-5 text-white" />
-            </div>
+            <Image
+              src="/logo.png"
+              alt="FlorLinda"
+              width={36}
+              height={36}
+              className="rounded-lg"
+            />
             {!collapsed && (
               <span className="text-lg font-bold bg-gradient-to-r from-pink-300 to-rose-300 bg-clip-text text-transparent">
                 FlorLinda

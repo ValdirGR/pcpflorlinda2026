@@ -8,6 +8,9 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "PCP Flor Linda — Painel de Controle de Produção",
   description: "Sistema de acompanhamento de coleções e produção — Flor Linda",
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
