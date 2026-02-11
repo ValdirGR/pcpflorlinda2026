@@ -33,7 +33,6 @@ export default async function ConfiguracoesPage() {
     { label: "Referências", value: stats.totalReferencias, icon: Tag, color: "text-cyan-600 bg-cyan-50" },
     { label: "Registros de Produção", value: stats.totalProducao, icon: Factory, color: "text-indigo-600 bg-indigo-50" },
     { label: "Usuários", value: stats.totalUsuarios, icon: Users, color: "text-purple-600 bg-purple-50" },
-    { label: "Perfis", value: stats.totalPerfis, icon: KeyRound, color: "text-pink-600 bg-pink-50" },
   ];
 
   return (
