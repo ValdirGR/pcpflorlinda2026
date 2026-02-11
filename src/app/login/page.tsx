@@ -57,12 +57,11 @@ function LoginForm() {
             <Image
               src="/logo.png"
               alt="FlorLinda"
-              width={64}
+              width={180}
               height={64}
-              className="rounded-2xl shadow-lg shadow-pink-500/25"
+              className="brightness-0 invert object-contain"
             />
           </div>
-          <h1 className="text-3xl font-bold text-white">FlorLinda</h1>
           <p className="text-slate-400 mt-1">Painel de Controle de Produção</p>
         </div>
 
