@@ -15,6 +15,7 @@ import {
   Clock,
   Layers
 } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 interface TVViewProps {
@@ -169,7 +170,11 @@ export function TVView({
            )}
         </div>
         
-        <div className="h-full w-full animate-in fade-in duration-500 slide-in-from-bottom-4 flex-1">
+        <div className="flex justify-center mb-4 shrink-0">
+          <Image src="/logo.png" alt="FlorLinda" width={160} height={56} className="brightness-0 invert object-contain" priority />
+        </div>
+
+        <div className="h-full w-full animate-in fade-in duration-500 slide-in-from-bottom-4 flex-1 overflow-hidden">
           {CurrentSlide.component}
         </div>
       </div>
