@@ -1,9 +1,10 @@
 import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { formatDate, getStatusColor, getStatusLabel, calcPercentage, isOverdue } from "@/lib/utils";
-import { ArrowLeft, Pencil, Clock, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Pencil, Clock, AlertTriangle, CheckCircle2, Plus } from "lucide-react";
 import { auth } from "@/auth";
 import { notFound } from "next/navigation";
+import { DeleteEtapaButton } from "@/components/referencias/delete-etapa-button";
 
 export const dynamic = "force-dynamic";
 
@@ -145,9 +146,20 @@ export default async function ReferenciaDetalhePage({ params }: PageProps) {
 
           {/* Etapas */}
           <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Etapas de Produção ({referencia.etapas.length})
-            </h3>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Etapas de Produção ({referencia.etapas.length})
+              </h3>
+              {nivel !== "visualizador" && (
+                <Link
+                  href={`/referencias/${referencia.id}/etapas/novo`}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 text-pink-600 rounded-lg text-xs font-medium hover:bg-pink-50 hover:text-pink-700 transition-colors border border-gray-200"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Nova Etapa
+                </Link>
+              )}
+            </div>
             {referencia.etapas.length > 0 ? (
               <div className="space-y-3">
                 {referencia.etapas.map((etapa) => {
@@ -177,13 +189,31 @@ export default async function ReferenciaDetalhePage({ params }: PageProps) {
                             {etapa.nome}
                           </span>
                         </div>
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                            etapa.status || "pendente"
-                          )}`}
-                        >
-                          {getStatusLabel(etapa.status || "pendente")}
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                              etapa.status || "pendente"
+                            )}`}
+                          >
+                            {getStatusLabel(etapa.status || "pendente")}
+                          </span>
+                          {nivel !== "visualizador" && (
+                            <>
+                              <div className="h-4 w-px bg-gray-300 mx-1" />
+                              <Link
+                                href={`/referencias/${referencia.id}/etapas/${etapa.id}/editar`}
+                                className="p-1 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded transition-colors"
+                                title="Editar etapa"
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Link>
+                              <DeleteEtapaButton 
+                                id={etapa.id} 
+                                referenciaId={referencia.id} 
+                              />
+                            </>
+                          )}
+                        </div>
                       </div>
                       <div className="flex gap-6 mt-2 ml-8 text-xs text-gray-500">
                         <span>Início: {formatDate(etapa.data_inicio)}</span>

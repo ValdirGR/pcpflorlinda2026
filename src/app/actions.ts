@@ -224,6 +224,7 @@ export async function atualizarEtapa(id: number, formData: FormData) {
   await prisma.etapaProducao.update({
     where: { id },
     data: {
+      nome: formData.get("nome") as string,
       status: formData.get("status") as etapas_producao_status,
       data_inicio: formData.get("data_inicio")
         ? new Date(formData.get("data_inicio") as string)
@@ -238,4 +239,13 @@ export async function atualizarEtapa(id: number, formData: FormData) {
   revalidatePath(`/referencias/${referencia_id}`);
   revalidatePath("/dashboard");
   redirect(`/referencias/${referencia_id}`);
+}
+
+export async function excluirEtapa(id: number, referencia_id: number) {
+  await prisma.etapaProducao.delete({
+    where: { id },
+  });
+
+  revalidatePath(`/referencias/${referencia_id}`);
+  revalidatePath("/dashboard");
 }
