@@ -85,10 +85,26 @@ async function getDashboardData() {
     {} as Record<string, number>
   );
 
-  const chartData = Object.entries(prodByDay)
-    .map(([date, total]) => ({ date, total }))
-    .reverse()
-    .slice(-14);
+  let chartData: { date: string; total: number }[];
+  let chartType: "dia" | "referencia" = "dia";
+
+  if (Object.keys(prodByDay).length > 0) {
+    chartData = Object.entries(prodByDay)
+      .map(([date, total]) => ({ date, total }))
+      .reverse()
+      .slice(-14);
+  } else {
+    // Fallback: show production per reference (top 14 with production)
+    chartType = "referencia";
+    chartData = referencias
+      .filter((r) => (r.quantidade_produzida || 0) > 0)
+      .sort((a, b) => (b.quantidade_produzida || 0) - (a.quantidade_produzida || 0))
+      .slice(0, 14)
+      .map((r) => ({
+        date: r.codigo,
+        total: r.quantidade_produzida || 0,
+      }));
+  }
 
   // Collection progress
   const collectionProgress = colecoes.map((c) => {
@@ -122,6 +138,7 @@ async function getDashboardData() {
       etapasAtrasadas,
     },
     chartData,
+    chartType,
     collectionProgress,
     etapas: etapas.map((e) => ({
       id: e.id,
@@ -160,7 +177,7 @@ export default async function DashboardPage() {
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div className="xl:col-span-2">
-          <ProductionChart data={data.chartData} />
+          <ProductionChart data={data.chartData} type={data.chartType} />
         </div>
         <div>
           <RecentEtapas etapas={data.etapas} />

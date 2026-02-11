@@ -12,13 +12,17 @@ import {
 
 interface ProductionChartProps {
   data: { date: string; total: number }[];
+  type?: "dia" | "referencia";
 }
 
-export function ProductionChart({ data }: ProductionChartProps) {
+export function ProductionChart({ data, type = "dia" }: ProductionChartProps) {
+  const title = type === "dia" ? "Produção por Dia" : "Produção por Referência";
+  const tooltipLabel = type === "dia" ? "Produção" : "Produzidas";
+
   return (
     <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        Produção por Dia
+        {title}
       </h3>
       {data.length > 0 ? (
         <ResponsiveContainer width="100%" height={300}>
@@ -44,7 +48,7 @@ export function ProductionChart({ data }: ProductionChartProps) {
               }}
               formatter={(value: any) => [
                 `${Number(value).toLocaleString("pt-BR")} peças`,
-                "Produção",
+                tooltipLabel,
               ]}
             />
             <Bar
