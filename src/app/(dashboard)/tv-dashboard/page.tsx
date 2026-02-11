@@ -79,18 +79,17 @@ async function getDashboardData() {
     (r) => r.status === "em_producao"
   ).length;
   
-  // Calculate delayed references dynamically based on late steps
-  const refAtrasadas = referencias.filter((r) => {
-    const isExplicitlyLate = ["atraso_desenvolvimento", "atraso_logistica"].includes(r.status);
-    const hasLateSteps = r.etapas.some((e) => e.data_fim && new Date(e.data_fim) < new Date());
-    return isExplicitlyLate || hasLateSteps;
-  }).length;
+  // Revert: Calculate delayed references based ONLY on explicit status to match "Collection Status: Normal" expectations
+  const refAtrasadas = referencias.filter(
+    (r) => ["atraso_desenvolvimento", "atraso_logistica"].includes(r.status)
+  ).length;
 
   const refAguardando = referencias.filter(
     (r) => r.status === "normal" && (r.quantidade_produzida || 0) === 0
   ).length;
   
-  // Use the real count from DB
+  // Use the real count from DB for the specific "Alerts" list, but don't mix it into the high-level "Ref Atrasadas" card
+  // This resolves the divergence where users see "Normal" status on collections but "Delayed" indicators on the main cards.
   const etapasAtrasadasCounts = totalLateEtapas;
 
   // Production by day (last 30 records)
