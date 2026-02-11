@@ -5,7 +5,7 @@ import AdminGuard from "@/components/admin/admin-guard";
 export const dynamic = "force-dynamic";
 
 async function getDashboardData() {
-  const [colecoes, referencias, producao, etapas] = await Promise.all([
+  const [colecoes, referencias, producao, etapas, totalLateEtapas] = await Promise.all([
     prisma.colecao.findMany({
       include: {
         _count: { select: { referencias: true } },
@@ -43,7 +43,7 @@ async function getDashboardData() {
     prisma.etapaProducao.findMany({
       where: {
         status: { in: ["pendente", "em_andamento"] },
-        data_fim: { lt: new Date() } // Filter specifically for late items if needed, or filter in JS
+        data_fim: { lt: new Date() }
       },
       include: {
         referencia: {
@@ -52,6 +52,12 @@ async function getDashboardData() {
       },
       orderBy: { data_fim: "asc" },
       take: 20,
+    }),
+    prisma.etapaProducao.count({
+      where: {
+        status: { in: ["pendente", "em_andamento"] },
+        data_fim: { lt: new Date() }
+      }
     }),
   ]);
 
@@ -72,17 +78,20 @@ async function getDashboardData() {
   const refEmProducao = referencias.filter(
     (r) => r.status === "em_producao"
   ).length;
-  const refAtrasadas = referencias.filter(
-    (r) => ["atraso_desenvolvimento", "atraso_logistica"].includes(r.status)
-  ).length;
+  
+  // Calculate delayed references dynamically based on late steps
+  const refAtrasadas = referencias.filter((r) => {
+    const isExplicitlyLate = ["atraso_desenvolvimento", "atraso_logistica"].includes(r.status);
+    const hasLateSteps = r.etapas.some((e) => e.data_fim && new Date(e.data_fim) < new Date());
+    return isExplicitlyLate || hasLateSteps;
+  }).length;
+
   const refAguardando = referencias.filter(
     (r) => r.status === "normal" && (r.quantidade_produzida || 0) === 0
   ).length;
   
-  // Explicitly calculate late steps
-  const etapasAtrasadasCounts = etapas.filter(
-    (e) => e.data_fim && new Date(e.data_fim) < new Date()
-  ).length;
+  // Use the real count from DB
+  const etapasAtrasadasCounts = totalLateEtapas;
 
   // Production by day (last 30 records)
   const prodByDay = producao.reduce(
