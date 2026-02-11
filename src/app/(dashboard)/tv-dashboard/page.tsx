@@ -69,6 +69,15 @@ async function getDashboardData() {
   const refFinalizadas = referencias.filter(
     (r) => r.status === "finalizada"
   ).length;
+  const refEmProducao = referencias.filter(
+    (r) => r.status === "em_producao"
+  ).length;
+  const refAtrasadas = referencias.filter(
+    (r) => ["atraso_desenvolvimento", "atraso_logistica"].includes(r.status)
+  ).length;
+  const refAguardando = referencias.filter(
+    (r) => r.status === "normal" && (r.quantidade_produzida || 0) === 0
+  ).length;
   
   // Explicitly calculate late steps
   const etapasAtrasadasCounts = etapas.filter(
@@ -107,7 +116,7 @@ async function getDashboardData() {
       total: totalPrev,
       percentage: totalPrev > 0 ? (totalProd / totalPrev) * 100 : 0
     };
-  }).sort((a, b) => b.percentage - a.percentage); // Sort by highest progress
+  }); // Removed sort to keep 'created_at desc' order
 
   return {
     stats: {
@@ -116,11 +125,15 @@ async function getDashboardData() {
       totalProduzidas,
       totalPrevistas,
       refFinalizadas,
+      refEmProducao,
+      refAtrasadas,
+      refAguardando,
       etapasAtrasadas: etapasAtrasadasCounts,
     },
     prodByDay: chartData,
     collectionProgress,
     recentProduction: producao,
+    recentReferencias: referencias.slice(0, 10), // Pass recent refs as fallback
     lateEtapas: etapas
   };
 }
