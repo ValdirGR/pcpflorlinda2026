@@ -166,6 +166,7 @@ async function getDashboardData() {
         etapa_ativa_nome: etapaInfo?.nome,
         etapa_ativa_status: etapaInfo?.status,
         etapa_ativa_urgente: etapaInfo?.urgente,
+        etapa_ativa_data_fim: etapaInfo?.dataFim,
         todas_concluidas: etapaInfo?.todasConcluidas,
       };
     }),

@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import Link from "next/link";
 import Image from "next/image";
-import { formatDate, getStatusColor, getStatusLabel, calcPercentage, isOverdue, getEtapaDisplayColor, getEtapaDisplayInfo } from "@/lib/utils";
+import { formatDate, getStatusColor, getStatusLabel, calcPercentage, isOverdue, getEtapaDisplayColor, getEtapaDisplayInfo, isDeadlineNear } from "@/lib/utils";
 import { ArrowLeft, Pencil, Tag, AlertTriangle, ImageOff } from "lucide-react";
 import { auth } from "@/auth";
 import { notFound } from "next/navigation";
@@ -185,17 +185,17 @@ export default async function ColecaoDetalhePage({ params }: PageProps) {
                     <div className="flex items-center gap-1.5 mt-2">
                       <span
                         className={`inline-block w-2 h-2 rounded-full ${etapaInfo.status === "concluida"
-                            ? "bg-green-500"
-                            : etapaInfo.urgente
-                              ? "bg-red-500"
-                              : etapaInfo.status === "em_andamento"
-                                ? "bg-blue-500"
-                                : "bg-yellow-500"
+                          ? "bg-green-500"
+                          : etapaInfo.status === "em_andamento"
+                            ? (etapaInfo.dataFim && isOverdue(etapaInfo.dataFim) ? "bg-red-500" : (etapaInfo.dataFim && isDeadlineNear(etapaInfo.dataFim, 5) ? "bg-yellow-500" : "bg-blue-500"))
+                            : "bg-orange-500"
                           }`}
                       />
                       <span
-                        className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${getEtapaDisplayColor(etapaInfo.status, etapaInfo.urgente ? new Date(0) : null)
-                          }`}
+                        className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${getEtapaDisplayColor(
+                          etapaInfo.status,
+                          etapaInfo.dataFim
+                        )}`}
                       >
                         {etapaInfo.nome}
                       </span>

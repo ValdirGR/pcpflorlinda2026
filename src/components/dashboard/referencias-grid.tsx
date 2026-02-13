@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { calcPercentage, getStatusColor, getStatusLabel, getEtapaDisplayColor } from "@/lib/utils";
+import { calcPercentage, getStatusColor, getStatusLabel, getEtapaDisplayColor, isOverdue, isDeadlineNear } from "@/lib/utils";
 import { AlertTriangle, Eye } from "lucide-react";
 
 interface ReferenciaData {
@@ -18,6 +18,7 @@ interface ReferenciaData {
   etapa_ativa_nome?: string;
   etapa_ativa_status?: string;
   etapa_ativa_urgente?: boolean;
+  etapa_ativa_data_fim?: string | null;
   todas_concluidas?: boolean;
 }
 
@@ -104,16 +105,16 @@ export function ReferenciasGrid({ referencias }: ReferenciasGridProps) {
                   <span
                     className={`inline-block w-2 h-2 rounded-full ${ref.etapa_ativa_status === "concluida"
                         ? "bg-green-500"
-                        : ref.etapa_ativa_urgente
-                          ? "bg-red-500"
-                          : ref.etapa_ativa_status === "em_andamento"
-                            ? "bg-blue-500"
-                            : "bg-yellow-500"
+                        : ref.etapa_ativa_status === "em_andamento"
+                          ? (ref.etapa_ativa_data_fim && isOverdue(ref.etapa_ativa_data_fim) ? "bg-red-500" : (ref.etapa_ativa_data_fim && isDeadlineNear(ref.etapa_ativa_data_fim, 5) ? "bg-yellow-500" : "bg-blue-500"))
+                          : "bg-orange-500"
                       }`}
                   />
                   <span
-                    className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${getEtapaDisplayColor(ref.etapa_ativa_status, ref.etapa_ativa_urgente ? new Date(0) : null)
-                      }`}
+                    className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${getEtapaDisplayColor(
+                      ref.etapa_ativa_status,
+                      ref.etapa_ativa_data_fim
+                    )}`}
                   >
                     {ref.etapa_ativa_nome}
                   </span>

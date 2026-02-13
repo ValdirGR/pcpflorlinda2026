@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { Plus, Pencil, Trash2, Eye, Search, AlertTriangle } from "lucide-react";
-import { getStatusColor, getStatusLabel, calcPercentage, getEtapaDisplayColor, getEtapaDisplayInfo } from "@/lib/utils";
+import { getStatusColor, getStatusLabel, calcPercentage, getEtapaDisplayColor, getEtapaDisplayInfo, isOverdue, isDeadlineNear } from "@/lib/utils";
 import { auth } from "@/auth";
 import { ReferenciasFilter } from "@/components/referencias/filter";
 
@@ -157,17 +157,17 @@ export default async function ReferenciasPage({ searchParams }: PageProps) {
                         <div className="flex items-center gap-1.5">
                           <span
                             className={`inline-block w-2 h-2 rounded-full ${ref.etapaInfo.status === "concluida"
-                              ? "bg-green-500"
-                              : ref.etapaInfo.urgente
-                                ? "bg-red-500"
+                                ? "bg-green-500"
                                 : ref.etapaInfo.status === "em_andamento"
-                                  ? "bg-blue-500"
-                                  : "bg-yellow-500"
+                                  ? (ref.etapaInfo.dataFim && isOverdue(ref.etapaInfo.dataFim) ? "bg-red-500" : (ref.etapaInfo.dataFim && isDeadlineNear(ref.etapaInfo.dataFim, 5) ? "bg-yellow-500" : "bg-blue-500"))
+                                  : "bg-orange-500"
                               }`}
                           />
                           <span
-                            className={`px-2 py-0.5 rounded-full text-xs font-medium ${getEtapaDisplayColor(ref.etapaInfo.status, ref.etapaInfo.urgente ? new Date(0) : null)
-                              }`}
+                            className={`px-2 py-0.5 rounded-full text-xs font-medium ${getEtapaDisplayColor(
+                              ref.etapaInfo.status,
+                              ref.etapaInfo.dataFim
+                            )}`}
                           >
                             {ref.etapaInfo.nome}
                           </span>

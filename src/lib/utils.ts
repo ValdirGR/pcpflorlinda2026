@@ -79,13 +79,18 @@ export function getEtapaDisplayColor(
     return "bg-green-100 text-green-800";
   }
   if (status === "em_andamento") {
-    if (dataFim && (isOverdue(dataFim) || isDeadlineNear(dataFim, 5))) {
-      return "bg-red-100 text-red-800";
+    if (dataFim) {
+      if (isOverdue(dataFim)) {
+        return "bg-red-100 text-red-800"; // Vermelho somente para atrasados
+      }
+      if (isDeadlineNear(dataFim, 5)) {
+        return "bg-yellow-100 text-yellow-800"; // Amarelo para a Margem dos 5 dias
+      }
     }
     return "bg-blue-100 text-blue-800";
   }
-  // pendente
-  return "bg-yellow-100 text-yellow-800";
+  // pendente - Laranja Somente para Pendentes
+  return "bg-orange-100 text-orange-800";
 }
 
 export interface EtapaDisplayInfo {
@@ -93,6 +98,7 @@ export interface EtapaDisplayInfo {
   status: string;
   urgente: boolean;
   todasConcluidas: boolean;
+  dataFim?: string | null;
 }
 
 export function getEtapaDisplayInfo(
@@ -107,6 +113,7 @@ export function getEtapaDisplayInfo(
       status: "concluida",
       urgente: false,
       todasConcluidas: true,
+      dataFim: null,
     };
   }
 
@@ -126,5 +133,6 @@ export function getEtapaDisplayInfo(
     status,
     urgente,
     todasConcluidas: false,
+    dataFim: ativa.data_fim ? (typeof ativa.data_fim === 'string' ? ativa.data_fim : ativa.data_fim.toISOString()) : null,
   };
 }
