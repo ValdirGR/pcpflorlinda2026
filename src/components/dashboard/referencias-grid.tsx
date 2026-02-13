@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { calcPercentage, getStatusColor, getStatusLabel } from "@/lib/utils";
+import { calcPercentage, getStatusColor, getStatusLabel, getEtapaDisplayColor } from "@/lib/utils";
 import { AlertTriangle, Eye } from "lucide-react";
 
 interface ReferenciaData {
@@ -15,6 +15,10 @@ interface ReferenciaData {
   colecao_nome: string;
   etapas_ativas: number;
   tem_etapa_atrasada: boolean;
+  etapa_ativa_nome?: string;
+  etapa_ativa_status?: string;
+  etapa_ativa_urgente?: boolean;
+  todas_concluidas?: boolean;
 }
 
 interface ReferenciasGridProps {
@@ -92,7 +96,29 @@ export function ReferenciasGrid({ referencias }: ReferenciasGridProps) {
               <h4 className="font-medium text-gray-900 text-sm truncate">
                 {ref.nome}
               </h4>
-              <p className="text-xs text-gray-400 mb-3">{ref.colecao_nome}</p>
+              <p className="text-xs text-gray-400 mb-2">{ref.colecao_nome}</p>
+
+              {/* Etapa ativa */}
+              {ref.etapa_ativa_nome && ref.etapa_ativa_status && (
+                <div className="flex items-center gap-1.5 mb-2">
+                  <span
+                    className={`inline-block w-2 h-2 rounded-full ${ref.etapa_ativa_status === "concluida"
+                        ? "bg-green-500"
+                        : ref.etapa_ativa_urgente
+                          ? "bg-red-500"
+                          : ref.etapa_ativa_status === "em_andamento"
+                            ? "bg-blue-500"
+                            : "bg-yellow-500"
+                      }`}
+                  />
+                  <span
+                    className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${getEtapaDisplayColor(ref.etapa_ativa_status, ref.etapa_ativa_urgente ? new Date(0) : null)
+                      }`}
+                  >
+                    {ref.etapa_ativa_nome}
+                  </span>
+                </div>
+              )}
 
               {/* Progress bar */}
               <div className="w-full bg-gray-100 rounded-full h-1.5 mb-1">

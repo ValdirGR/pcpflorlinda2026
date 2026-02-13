@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import Link from "next/link";
 import { Plus, Pencil, Trash2, Eye, Search, AlertTriangle } from "lucide-react";
-import { getStatusColor, getStatusLabel, calcPercentage } from "@/lib/utils";
+import { getStatusColor, getStatusLabel, calcPercentage, getEtapaDisplayColor, getEtapaDisplayInfo } from "@/lib/utils";
 import { auth } from "@/auth";
 import { ReferenciasFilter } from "@/components/referencias/filter";
 
@@ -35,20 +35,24 @@ export default async function ReferenciasPage({ searchParams }: PageProps) {
     include: {
       colecao: { select: { nome: true, codigo: true } },
       etapas: {
-        where: { status: { in: ["pendente", "em_andamento"] } },
-        select: { data_fim: true, status: true },
+        select: { nome: true, status: true, data_fim: true },
+        orderBy: { created_at: "asc" },
       },
     },
     orderBy: { created_at: "desc" },
   });
 
-  const refData = referencias.map((r) => ({
-    ...r,
-    tem_etapa_atrasada: r.etapas.some(
-      (e) => e.data_fim && new Date(e.data_fim) < new Date()
-    ),
-    etapas_ativas: r.etapas.length,
-  }));
+  const refData = referencias.map((r) => {
+    const etapaInfo = getEtapaDisplayInfo(r.etapas as any);
+    return {
+      ...r,
+      tem_etapa_atrasada: r.etapas.some(
+        (e) => e.status !== "concluida" && e.data_fim && new Date(e.data_fim) < new Date()
+      ),
+      etapas_ativas: r.etapas.filter((e) => e.status !== "concluida").length,
+      etapaInfo,
+    };
+  });
 
   return (
     <div className="space-y-6">
@@ -57,7 +61,7 @@ export default async function ReferenciasPage({ searchParams }: PageProps) {
         {nivel !== "visualizador" && (
           <Link
             href="/referencias/novo"
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-lg font-medium text-sm hover:from-pink-600 hover:to-rose-600 shadow-sm shadow-pink-500/20 transition-all"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-linear-to-r from-pink-500 to-rose-500 text-white rounded-lg font-medium text-sm hover:from-pink-600 hover:to-rose-600 shadow-sm shadow-pink-500/20 transition-all"
           >
             <Plus className="h-4 w-4" />
             Nova Referência
@@ -129,9 +133,8 @@ export default async function ReferenciasPage({ searchParams }: PageProps) {
                       <div className="flex items-center gap-3">
                         <div className="flex-1 w-24 bg-gray-100 rounded-full h-1.5">
                           <div
-                            className={`h-1.5 rounded-full ${
-                              pct >= 100 ? "bg-green-500" : "bg-pink-500"
-                            }`}
+                            className={`h-1.5 rounded-full ${pct >= 100 ? "bg-green-500" : "bg-pink-500"
+                              }`}
                             style={{ width: `${Math.min(pct, 100)}%` }}
                           />
                         </div>
@@ -150,15 +153,28 @@ export default async function ReferenciasPage({ searchParams }: PageProps) {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      {ref.tem_etapa_atrasada ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-1 bg-red-50 text-red-600 rounded-full text-xs font-medium">
-                          <AlertTriangle className="h-3 w-3" />
-                          Atenção
-                        </span>
-                      ) : ref.etapas_ativas > 0 ? (
-                        <span className="text-xs text-gray-400">
-                          {ref.etapas_ativas} ativa(s)
-                        </span>
+                      {ref.etapaInfo ? (
+                        <div className="flex items-center gap-1.5">
+                          <span
+                            className={`inline-block w-2 h-2 rounded-full ${ref.etapaInfo.status === "concluida"
+                              ? "bg-green-500"
+                              : ref.etapaInfo.urgente
+                                ? "bg-red-500"
+                                : ref.etapaInfo.status === "em_andamento"
+                                  ? "bg-blue-500"
+                                  : "bg-yellow-500"
+                              }`}
+                          />
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-xs font-medium ${getEtapaDisplayColor(ref.etapaInfo.status, ref.etapaInfo.urgente ? new Date(0) : null)
+                              }`}
+                          >
+                            {ref.etapaInfo.nome}
+                          </span>
+                          {ref.tem_etapa_atrasada && (
+                            <AlertTriangle className="h-3 w-3 text-red-500 ml-1" />
+                          )}
+                        </div>
                       ) : (
                         <span className="text-xs text-gray-300">—</span>
                       )}

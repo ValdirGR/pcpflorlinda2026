@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import Link from "next/link";
 import Image from "next/image";
-import { formatDate, getStatusColor, getStatusLabel, calcPercentage, isOverdue } from "@/lib/utils";
+import { formatDate, getStatusColor, getStatusLabel, calcPercentage, isOverdue, getEtapaDisplayColor, getEtapaDisplayInfo } from "@/lib/utils";
 import { ArrowLeft, Pencil, Tag, AlertTriangle, ImageOff } from "lucide-react";
 import { auth } from "@/auth";
 import { notFound } from "next/navigation";
@@ -23,8 +23,8 @@ export default async function ColecaoDetalhePage({ params }: PageProps) {
       referencias: {
         include: {
           etapas: {
-            where: { status: { in: ["pendente", "em_andamento"] } },
-            select: { data_fim: true },
+            select: { nome: true, status: true, data_fim: true },
+            orderBy: { created_at: "asc" },
           },
         },
         orderBy: { codigo: "asc" },
@@ -128,8 +128,9 @@ export default async function ColecaoDetalhePage({ params }: PageProps) {
               ref.previsao_producao || 0
             );
             const hasOverdue = ref.etapas.some(
-              (e) => e.data_fim && isOverdue(e.data_fim)
+              (e) => e.status !== "concluida" && e.data_fim && isOverdue(e.data_fim)
             );
+            const etapaInfo = getEtapaDisplayInfo(ref.etapas as any);
 
             return (
               <Link
@@ -178,6 +179,29 @@ export default async function ColecaoDetalhePage({ params }: PageProps) {
                     </div>
                   </div>
                   <p className="text-sm text-gray-900 truncate">{ref.nome}</p>
+
+                  {/* Etapa ativa */}
+                  {etapaInfo && (
+                    <div className="flex items-center gap-1.5 mt-2">
+                      <span
+                        className={`inline-block w-2 h-2 rounded-full ${etapaInfo.status === "concluida"
+                            ? "bg-green-500"
+                            : etapaInfo.urgente
+                              ? "bg-red-500"
+                              : etapaInfo.status === "em_andamento"
+                                ? "bg-blue-500"
+                                : "bg-yellow-500"
+                          }`}
+                      />
+                      <span
+                        className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${getEtapaDisplayColor(etapaInfo.status, etapaInfo.urgente ? new Date(0) : null)
+                          }`}
+                      >
+                        {etapaInfo.nome}
+                      </span>
+                    </div>
+                  )}
+
                   <div className="mt-3">
                     <div className="w-full bg-gray-100 rounded-full h-1.5">
                       <div

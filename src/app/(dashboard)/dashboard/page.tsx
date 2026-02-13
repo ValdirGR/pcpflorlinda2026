@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { getEtapaDisplayInfo } from "@/lib/utils";
 import { StatsCards } from "@/components/dashboard/stats-cards";
 import { ProductionChart } from "@/components/dashboard/production-chart";
 import { CollectionProgress } from "@/components/dashboard/collection-progress";
@@ -26,10 +27,8 @@ async function getDashboardData() {
       include: {
         colecao: { select: { nome: true, codigo: true } },
         etapas: {
-          where: {
-            status: { in: ["pendente", "em_andamento"] },
-          },
-          orderBy: { data_fim: "asc" },
+          select: { nome: true, status: true, data_fim: true },
+          orderBy: { created_at: "asc" },
         },
       },
       orderBy: { created_at: "desc" },
@@ -149,20 +148,27 @@ async function getDashboardData() {
       referenciaCodigo: e.referencia.codigo,
       colecao: e.referencia.colecao.nome,
     })),
-    referencias: referencias.slice(0, 12).map((r) => ({
-      id: r.id,
-      codigo: r.codigo,
-      nome: r.nome,
-      foto: r.foto,
-      status: r.status || "normal",
-      quantidade_produzida: r.quantidade_produzida || 0,
-      previsao_producao: r.previsao_producao || 0,
-      colecao_nome: r.colecao.nome,
-      etapas_ativas: r.etapas.length,
-      tem_etapa_atrasada: r.etapas.some(
-        (e) => e.data_fim && new Date(e.data_fim) < new Date()
-      ),
-    })),
+    referencias: referencias.slice(0, 12).map((r) => {
+      const etapaInfo = getEtapaDisplayInfo(r.etapas as any);
+      return {
+        id: r.id,
+        codigo: r.codigo,
+        nome: r.nome,
+        foto: r.foto,
+        status: r.status || "normal",
+        quantidade_produzida: r.quantidade_produzida || 0,
+        previsao_producao: r.previsao_producao || 0,
+        colecao_nome: r.colecao.nome,
+        etapas_ativas: r.etapas.filter((e) => e.status !== "concluida").length,
+        tem_etapa_atrasada: r.etapas.some(
+          (e) => e.status !== "concluida" && e.data_fim && new Date(e.data_fim) < new Date()
+        ),
+        etapa_ativa_nome: etapaInfo?.nome,
+        etapa_ativa_status: etapaInfo?.status,
+        etapa_ativa_urgente: etapaInfo?.urgente,
+        todas_concluidas: etapaInfo?.todasConcluidas,
+      };
+    }),
   };
 }
 
