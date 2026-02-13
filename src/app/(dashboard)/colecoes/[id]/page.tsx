@@ -106,9 +106,8 @@ export default async function ColecaoDetalhePage({ params }: PageProps) {
           <div className="flex items-center gap-2">
             <div className="flex-1 bg-gray-100 rounded-full h-2">
               <div
-                className={`h-2 rounded-full ${
-                  pct >= 100 ? "bg-green-500" : "bg-pink-500"
-                }`}
+                className={`h-2 rounded-full ${pct >= 100 ? "bg-green-500" : "bg-pink-500"
+                  }`}
                 style={{ width: `${Math.min(pct, 100)}%` }}
               />
             </div>
@@ -142,7 +141,11 @@ export default async function ColecaoDetalhePage({ params }: PageProps) {
                 <div className="relative w-full" style={{ aspectRatio: "600 / 400" }}>
                   {ref.foto ? (
                     <Image
-                      src={`https://florlinda.store/pcpflorlinda/uploads/referencias/${ref.foto}`}
+                      src={
+                        ref.foto.startsWith("http")
+                          ? ref.foto
+                          : `https://florlinda.store/pcpflorlinda/uploads/referencias/${ref.foto}`
+                      }
                       alt={ref.nome}
                       fill
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
@@ -178,9 +181,8 @@ export default async function ColecaoDetalhePage({ params }: PageProps) {
                   <div className="mt-3">
                     <div className="w-full bg-gray-100 rounded-full h-1.5">
                       <div
-                        className={`h-1.5 rounded-full ${
-                          refPct >= 100 ? "bg-green-500" : "bg-pink-500"
-                        }`}
+                        className={`h-1.5 rounded-full ${refPct >= 100 ? "bg-green-500" : "bg-pink-500"
+                          }`}
                         style={{ width: `${Math.min(refPct, 100)}%` }}
                       />
                     </div>

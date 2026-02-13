@@ -126,11 +126,10 @@ export default async function ReferenciaDetalhePage({ params }: PageProps) {
               </div>
               <div className="w-full bg-gray-100 rounded-full h-3">
                 <div
-                  className={`h-3 rounded-full transition-all ${
-                    pct >= 100
-                      ? "bg-gradient-to-r from-green-400 to-green-500"
-                      : "bg-gradient-to-r from-pink-400 to-rose-500"
-                  }`}
+                  className={`h-3 rounded-full transition-all ${pct >= 100
+                    ? "bg-linear-to-r from-green-400 to-green-500"
+                    : "bg-linear-to-r from-pink-400 to-rose-500"
+                    }`}
                   style={{ width: `${Math.min(pct, 100)}%` }}
                 />
               </div>
@@ -168,13 +167,12 @@ export default async function ReferenciaDetalhePage({ params }: PageProps) {
                   return (
                     <div
                       key={etapa.id}
-                      className={`p-4 rounded-lg border ${
-                        overdue
-                          ? "border-red-200 bg-red-50/30"
-                          : etapa.status === "concluida"
+                      className={`p-4 rounded-lg border ${overdue
+                        ? "border-red-200 bg-red-50/30"
+                        : etapa.status === "concluida"
                           ? "border-green-200 bg-green-50/30"
                           : "border-gray-100 bg-gray-50/30"
-                      }`}
+                        }`}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -207,9 +205,9 @@ export default async function ReferenciaDetalhePage({ params }: PageProps) {
                               >
                                 <Pencil className="h-4 w-4" />
                               </Link>
-                              <DeleteEtapaButton 
-                                id={etapa.id} 
-                                referenciaId={referencia.id} 
+                              <DeleteEtapaButton
+                                id={etapa.id}
+                                referenciaId={referencia.id}
                               />
                             </>
                           )}
@@ -242,10 +240,14 @@ export default async function ReferenciaDetalhePage({ params }: PageProps) {
         <div className="space-y-6">
           {/* Photo */}
           <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="h-64 bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center">
+            <div className="h-64 bg-linear-to-br from-gray-100 to-gray-50 flex items-center justify-center">
               {referencia.foto ? (
                 <img
-                  src={`https://florlinda.store/pcpflorlinda/uploads/referencias/${referencia.foto}`}
+                  src={
+                    referencia.foto.startsWith("http")
+                      ? referencia.foto
+                      : `https://florlinda.store/pcpflorlinda/uploads/referencias/${referencia.foto}`
+                  }
                   alt={referencia.nome}
                   className="w-full h-full object-cover"
                 />

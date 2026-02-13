@@ -90,11 +90,13 @@ export async function excluirColecao(id: number) {
 }
 
 export async function criarReferencia(formData: FormData) {
+  const fotoValue = formData.get("foto") as string;
   await prisma.referencia.create({
     data: {
       colecao_id: parseInt(formData.get("colecao_id") as string),
       codigo: formData.get("codigo") as string,
       nome: formData.get("nome") as string,
+      foto: fotoValue || null,
       tempo_producao: formData.get("tempo_producao")
         ? parseInt(formData.get("tempo_producao") as string)
         : 0,
@@ -123,12 +125,14 @@ export async function criarReferencia(formData: FormData) {
 }
 
 export async function editarReferencia(id: number, formData: FormData) {
+  const fotoValue = formData.get("foto") as string;
   await prisma.referencia.update({
     where: { id },
     data: {
       colecao_id: parseInt(formData.get("colecao_id") as string),
       codigo: formData.get("codigo") as string,
       nome: formData.get("nome") as string,
+      foto: fotoValue || null,
       tempo_producao: formData.get("tempo_producao")
         ? parseInt(formData.get("tempo_producao") as string)
         : 0,

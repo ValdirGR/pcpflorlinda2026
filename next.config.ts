@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
         hostname: "florlinda.store",
         pathname: "/pcpflorlinda/uploads/**",
       },
+      {
+        protocol: "https",
+        hostname: "*.supabase.co",
+        pathname: "/storage/v1/object/public/**",
+      },
     ],
   },
 };

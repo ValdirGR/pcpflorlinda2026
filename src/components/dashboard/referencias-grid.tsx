@@ -33,10 +33,14 @@ export function ReferenciasGrid({ referencias }: ReferenciasGridProps) {
             className="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:border-pink-200 transition-all duration-300"
           >
             {/* Image */}
-            <div className="relative h-40 bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center overflow-hidden">
+            <div className="relative h-40 bg-linear-to-br from-gray-100 to-gray-50 flex items-center justify-center overflow-hidden">
               {ref.foto ? (
                 <img
-                  src={`https://florlinda.store/pcpflorlinda/uploads/referencias/${ref.foto}`}
+                  src={
+                    ref.foto.startsWith("http")
+                      ? ref.foto
+                      : `https://florlinda.store/pcpflorlinda/uploads/referencias/${ref.foto}`
+                  }
                   alt={ref.nome}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   onError={(e) => {
@@ -93,13 +97,12 @@ export function ReferenciasGrid({ referencias }: ReferenciasGridProps) {
               {/* Progress bar */}
               <div className="w-full bg-gray-100 rounded-full h-1.5 mb-1">
                 <div
-                  className={`h-1.5 rounded-full transition-all ${
-                    pct >= 100
-                      ? "bg-green-500"
-                      : pct >= 50
+                  className={`h-1.5 rounded-full transition-all ${pct >= 100
+                    ? "bg-green-500"
+                    : pct >= 50
                       ? "bg-pink-500"
                       : "bg-orange-500"
-                  }`}
+                    }`}
                   style={{ width: `${Math.min(pct, 100)}%` }}
                 />
               </div>
