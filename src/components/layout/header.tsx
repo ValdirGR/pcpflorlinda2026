@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Search, Bell } from "lucide-react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { CollectionSelector } from "./collection-selector";
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Dashboard",
@@ -44,6 +45,9 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-4">
+          {/* Collection Selector */}
+          <CollectionSelector />
+
           {/* Search */}
           <form onSubmit={handleSearch} className="hidden md:flex items-center">
             <div className="relative">
@@ -75,7 +79,7 @@ export default function Header() {
                   {session.user.nivel}
                 </p>
               </div>
-              <div className="h-9 w-9 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center text-white text-sm font-bold shadow-md">
+              <div className="h-9 w-9 rounded-full bg-linear-to-br from-pink-400 to-rose-500 flex items-center justify-center text-white text-sm font-bold shadow-md">
                 {session.user.name?.charAt(0).toUpperCase()}
               </div>
             </div>

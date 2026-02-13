@@ -253,3 +253,17 @@ export async function excluirEtapa(id: number, referencia_id: number) {
   revalidatePath(`/referencias/${referencia_id}`);
   revalidatePath("/dashboard");
 }
+
+export async function listarColecoesParaSeletor() {
+  const colecoes = await prisma.colecao.findMany({
+    select: {
+      id: true,
+      nome: true,
+      codigo: true,
+    },
+    orderBy: {
+      created_at: "desc",
+    },
+  });
+  return colecoes;
+}
