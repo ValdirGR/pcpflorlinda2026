@@ -60,15 +60,28 @@ export function isDeadlineNear(date: Date | string | null, days: number = 5): bo
   if (!date) return false;
   const d = new Date(date);
   const now = new Date();
-  const diff = d.getTime() - now.getTime();
-  const diffDays = diff / (1000 * 60 * 60 * 24);
+
+  // Reset time to ignore hours/minutes differences
+  d.setHours(0, 0, 0, 0);
+  now.setHours(0, 0, 0, 0);
+
+  const diffTime = d.getTime() - now.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+  // Near if the difference is between 0 (today) and `days`
   return diffDays >= 0 && diffDays <= days;
 }
 
 export function isOverdue(date: Date | string | null): boolean {
   if (!date) return false;
   const d = new Date(date);
-  return d < new Date();
+  const now = new Date();
+
+  // Reset time to compare only dates
+  d.setHours(0, 0, 0, 0);
+  now.setHours(0, 0, 0, 0);
+
+  return d.getTime() < now.getTime();
 }
 
 export function getEtapaDisplayColor(
