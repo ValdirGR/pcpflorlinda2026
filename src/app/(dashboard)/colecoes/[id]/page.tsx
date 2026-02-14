@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { formatDate, getStatusColor, getStatusLabel, calcPercentage, isOverdue, getEtapaDisplayColor, getEtapaDisplayInfo, isDeadlineNear } from "@/lib/utils";
 import { ArrowLeft, Pencil, Tag, AlertTriangle, ImageOff } from "lucide-react";
+import { CollectionStatusFilter } from "@/components/colecoes/status-filter";
 import { auth } from "@/auth";
 import { notFound } from "next/navigation";
 
@@ -10,10 +11,12 @@ export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ status?: string }>;
 }
 
-export default async function ColecaoDetalhePage({ params }: PageProps) {
+export default async function ColecaoDetalhePage({ params, searchParams }: PageProps) {
   const { id } = await params;
+  const { status } = await searchParams;
   const session = await auth();
   const nivel = session?.user?.nivel || "visualizador";
 
@@ -43,6 +46,24 @@ export default async function ColecaoDetalhePage({ params }: PageProps) {
     0
   );
   const pct = calcPercentage(totalProd, totalPrev);
+
+  // Filter references based on status param
+  const filteredReferencias = colecao.referencias.filter((ref) => {
+    if (!status || status === "todos") return true;
+
+    const etapaInfo = getEtapaDisplayInfo(ref.etapas as any);
+    const isOverdueItem = etapaInfo?.dataFim && isOverdue(etapaInfo.dataFim);
+    const isNearItem = etapaInfo?.dataFim && isDeadlineNear(etapaInfo.dataFim, 5);
+    const statusEtapa = etapaInfo?.status;
+
+    if (status === "atrasado") return statusEtapa !== "concluida" && isOverdueItem;
+    if (status === "atencao") return statusEtapa !== "concluida" && !isOverdueItem && isNearItem;
+    if (status === "pendente") return statusEtapa === "pendente";
+    if (status === "em_andamento_dia") return statusEtapa === "em_andamento" && !isOverdueItem && !isNearItem;
+    if (status === "concluido") return statusEtapa === "concluida";
+
+    return true;
+  });
 
   return (
     <div className="space-y-6">
@@ -121,8 +142,11 @@ export default async function ColecaoDetalhePage({ params }: PageProps) {
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           Referências desta Coleção
         </h3>
+
+        <CollectionStatusFilter />
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {colecao.referencias.map((ref) => {
+          {filteredReferencias.map((ref) => {
             const refPct = calcPercentage(
               ref.quantidade_produzida || 0,
               ref.previsao_producao || 0
