@@ -41,6 +41,9 @@ export default function NovoUsuarioPage() {
       try {
         await criarUsuario(formData);
       } catch (error: any) {
+        if (error?.digest?.startsWith("NEXT_REDIRECT")) {
+          throw error;
+        }
         setErro(error.message || "Erro ao criar usuário");
       }
     });

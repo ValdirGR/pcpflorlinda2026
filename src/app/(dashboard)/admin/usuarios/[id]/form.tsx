@@ -48,6 +48,9 @@ export function EditarUsuarioForm({ usuario }: { usuario: UsuarioData }) {
       try {
         await editarUsuario(usuario.id, formData);
       } catch (error: any) {
+        if (error?.digest?.startsWith("NEXT_REDIRECT")) {
+          throw error;
+        }
         setErro(error.message || "Erro ao atualizar usuário");
       }
     });
