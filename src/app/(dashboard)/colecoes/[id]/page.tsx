@@ -47,22 +47,45 @@ export default async function ColecaoDetalhePage({ params, searchParams }: PageP
   );
   const pct = calcPercentage(totalProd, totalPrev);
 
-  // Filter references based on status param
-  const filteredReferencias = colecao.referencias.filter((ref) => {
-    if (!status || status === "todos") return true;
+  // Calculate counts and filter references
+  const counts = {
+    todos: colecao.referencias.length,
+    atrasado: 0,
+    atencao: 0,
+    pendente: 0,
+    em_andamento_dia: 0,
+    concluido: 0,
+  };
 
+  const filteredReferencias = colecao.referencias.filter((ref) => {
     const etapaInfo = getEtapaDisplayInfo(ref.etapas as any);
     const isOverdueItem = etapaInfo?.dataFim && isOverdue(etapaInfo.dataFim);
     const isNearItem = etapaInfo?.dataFim && isDeadlineNear(etapaInfo.dataFim, 5);
     const statusEtapa = etapaInfo?.status;
 
-    if (status === "atrasado") return statusEtapa !== "concluida" && isOverdueItem;
-    if (status === "atencao") return statusEtapa !== "concluida" && !isOverdueItem && isNearItem;
-    if (status === "pendente") return statusEtapa === "pendente";
-    if (status === "em_andamento_dia") return statusEtapa === "em_andamento" && !isOverdueItem && !isNearItem;
-    if (status === "concluido") return statusEtapa === "concluida";
+    // Determine category for counting
+    let category = "";
 
-    return true;
+    if (statusEtapa === "concluida") {
+      category = "concluido";
+      counts.concluido++;
+    } else if (isOverdueItem) {
+      category = "atrasado";
+      counts.atrasado++;
+    } else if (isNearItem) {
+      category = "atencao";
+      counts.atencao++;
+    } else if (statusEtapa === "pendente") {
+      category = "pendente";
+      counts.pendente++;
+    } else if (statusEtapa === "em_andamento") {
+      category = "em_andamento_dia";
+      counts.em_andamento_dia++;
+    }
+
+    // Filter based on selected status
+    if (!status || status === "todos") return true;
+    return status === category;
   });
 
   return (
@@ -143,7 +166,7 @@ export default async function ColecaoDetalhePage({ params, searchParams }: PageP
           Referências desta Coleção
         </h3>
 
-        <CollectionStatusFilter />
+        <CollectionStatusFilter counts={counts} />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {filteredReferencias.map((ref) => {

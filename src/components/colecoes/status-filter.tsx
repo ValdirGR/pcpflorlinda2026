@@ -12,7 +12,19 @@ const statusOptions = [
     { label: "Concluídos", value: "concluido", color: "bg-green-100 text-green-700 hover:bg-green-200" },
 ];
 
-export function CollectionStatusFilter() {
+interface CollectionStatusFilterProps {
+    counts: {
+        todos: number;
+        atrasado: number;
+        atencao: number;
+        pendente: number;
+        em_andamento_dia: number;
+        concluido: number;
+        [key: string]: number;
+    };
+}
+
+export function CollectionStatusFilter({ counts }: CollectionStatusFilterProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
     const currentStatus = searchParams.get("status") || "todos";
@@ -34,12 +46,15 @@ export function CollectionStatusFilter() {
                     key={option.value}
                     onClick={() => handleFilter(option.value)}
                     className={cn(
-                        "px-3 py-1.5 rounded-full text-sm font-medium transition-colors",
+                        "px-3 py-1.5 rounded-full text-sm font-medium transition-colors border border-transparent",
                         option.color,
-                        currentStatus === option.value && "ring-2 ring-offset-2 ring-gray-300"
+                        currentStatus === option.value && "ring-2 ring-offset-2 ring-gray-300 border-gray-300"
                     )}
                 >
                     {option.label}
+                    <span className="ml-1.5 opacity-70 text-xs">
+                        ({counts[option.value] || 0})
+                    </span>
                 </button>
             ))}
         </div>
