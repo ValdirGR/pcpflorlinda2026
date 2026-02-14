@@ -16,6 +16,7 @@ enum colecoes_status {
   normal
   atrasado
   finalizado
+  desabilitada
 }
 
 enum referencias_status {

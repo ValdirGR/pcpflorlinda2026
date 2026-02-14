@@ -11,6 +11,10 @@ export default async function ColecoesPage() {
   const nivel = session?.user?.nivel || "visualizador";
 
   const colecoes = await prisma.colecao.findMany({
+    where:
+      nivel === "admin"
+        ? {} // Admin sees everything
+        : { status: { not: "desabilitada" } }, // Others see only active
     include: {
       _count: { select: { referencias: true } },
       referencias: {
@@ -30,7 +34,7 @@ export default async function ColecoesPage() {
         {nivel !== "visualizador" && (
           <Link
             href="/colecoes/novo"
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-lg font-medium text-sm hover:from-pink-600 hover:to-rose-600 shadow-sm shadow-pink-500/20 transition-all"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-linear-to-r from-pink-500 to-rose-500 text-white rounded-lg font-medium text-sm hover:from-pink-600 hover:to-rose-600 shadow-sm shadow-pink-500/20 transition-all"
           >
             <Plus className="h-4 w-4" />
             Nova Coleção
@@ -53,7 +57,10 @@ export default async function ColecoesPage() {
           return (
             <div
               key={colecao.id}
-              className="bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow overflow-hidden"
+              className={`bg-white rounded-xl border shadow-sm transition-all overflow-hidden ${colecao.status === "desabilitada"
+                ? "border-gray-200 opacity-60 hover:opacity-100"
+                : "border-gray-100 hover:shadow-md"
+                }`}
             >
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
@@ -70,6 +77,11 @@ export default async function ColecoesPage() {
                   >
                     {getStatusLabel(colecao.status || "normal")}
                   </span>
+                  {colecao.status === "desabilitada" && (
+                    <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-500 uppercase tracking-wider">
+                      Arquivada
+                    </span>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
@@ -107,13 +119,12 @@ export default async function ColecoesPage() {
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-2">
                     <div
-                      className={`h-2 rounded-full transition-all ${
-                        pct >= 100
-                          ? "bg-green-500"
-                          : pct >= 50
+                      className={`h-2 rounded-full transition-all ${pct >= 100
+                        ? "bg-green-500"
+                        : pct >= 50
                           ? "bg-pink-500"
                           : "bg-orange-500"
-                      }`}
+                        }`}
                       style={{ width: `${Math.min(pct, 100)}%` }}
                     />
                   </div>

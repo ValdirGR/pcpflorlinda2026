@@ -256,6 +256,9 @@ export async function excluirEtapa(id: number, referencia_id: number) {
 
 export async function listarColecoesParaSeletor() {
   const colecoes = await prisma.colecao.findMany({
+    where: {
+      status: { not: "desabilitada" },
+    },
     select: {
       id: true,
       nome: true,

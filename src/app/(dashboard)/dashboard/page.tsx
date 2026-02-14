@@ -11,6 +11,9 @@ export const dynamic = "force-dynamic";
 async function getDashboardData() {
   const [colecoes, referencias, producao, etapas] = await Promise.all([
     prisma.colecao.findMany({
+      where: {
+        status: { not: "desabilitada" },
+      },
       include: {
         _count: { select: { referencias: true } },
         referencias: {
@@ -24,6 +27,9 @@ async function getDashboardData() {
       orderBy: { created_at: "desc" },
     }),
     prisma.referencia.findMany({
+      where: {
+        colecao: { status: { not: "desabilitada" } },
+      },
       include: {
         colecao: { select: { nome: true, codigo: true } },
         etapas: {
@@ -34,6 +40,9 @@ async function getDashboardData() {
       orderBy: { created_at: "desc" },
     }),
     prisma.producao.findMany({
+      where: {
+        referencia: { colecao: { status: { not: "desabilitada" } } },
+      },
       include: {
         referencia: {
           select: { nome: true, codigo: true },
@@ -45,6 +54,7 @@ async function getDashboardData() {
     prisma.etapaProducao.findMany({
       where: {
         status: { in: ["pendente", "em_andamento"] },
+        referencia: { colecao: { status: { not: "desabilitada" } } },
       },
       include: {
         referencia: {

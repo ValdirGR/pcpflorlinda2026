@@ -17,10 +17,15 @@ export default async function ReferenciasPage({ searchParams }: PageProps) {
   const nivel = session?.user?.nivel || "visualizador";
 
   const colecoes = await prisma.colecao.findMany({
+    where: {
+      status: { not: "desabilitada" },
+    },
     orderBy: { nome: "asc" },
   });
 
-  const where: any = {};
+  const where: any = {
+    colecao: { status: { not: "desabilitada" } },
+  };
   if (params.colecao_id) where.colecao_id = parseInt(params.colecao_id);
   if (params.status) where.status = params.status;
   if (params.busca) {
@@ -157,10 +162,10 @@ export default async function ReferenciasPage({ searchParams }: PageProps) {
                         <div className="flex items-center gap-1.5">
                           <span
                             className={`inline-block w-2 h-2 rounded-full ${ref.etapaInfo.status === "concluida"
-                                ? "bg-green-500"
-                                : ref.etapaInfo.status === "em_andamento"
-                                  ? (ref.etapaInfo.dataFim && isOverdue(ref.etapaInfo.dataFim) ? "bg-red-500" : (ref.etapaInfo.dataFim && isDeadlineNear(ref.etapaInfo.dataFim, 5) ? "bg-yellow-500" : "bg-blue-500"))
-                                  : "bg-orange-500"
+                              ? "bg-green-500"
+                              : ref.etapaInfo.status === "em_andamento"
+                                ? (ref.etapaInfo.dataFim && isOverdue(ref.etapaInfo.dataFim) ? "bg-red-500" : (ref.etapaInfo.dataFim && isDeadlineNear(ref.etapaInfo.dataFim, 5) ? "bg-yellow-500" : "bg-blue-500"))
+                                : "bg-orange-500"
                               }`}
                           />
                           <span

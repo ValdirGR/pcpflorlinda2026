@@ -104,6 +104,7 @@ export default async function EditarColecaoPage({
               <option value="normal">Normal</option>
               <option value="atrasado">Atrasado</option>
               <option value="finalizado">Finalizado</option>
+              <option value="desabilitada">Desabilitada</option>
             </select>
           </div>
           <div>
@@ -128,7 +129,7 @@ export default async function EditarColecaoPage({
           </Link>
           <button
             type="submit"
-            className="px-6 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-pink-500 to-rose-500 rounded-lg hover:from-pink-600 hover:to-rose-600 shadow-sm transition-all"
+            className="px-6 py-2.5 text-sm font-medium text-white bg-linear-to-r from-pink-500 to-rose-500 rounded-lg hover:from-pink-600 hover:to-rose-600 shadow-sm transition-all"
           >
             Salvar Alterações
           </button>
