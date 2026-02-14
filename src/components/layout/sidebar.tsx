@@ -121,30 +121,31 @@ export default function Sidebar() {
             );
           })}
 
+          {/* TV Dashboard - visível para todos */}
+          <div className="my-3 border-t border-slate-700/50" />
+
+          <Link
+            href="/tv-dashboard"
+            onClick={() => setMobileOpen(false)}
+            className={cn(
+              "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+              pathname.startsWith("/tv-dashboard")
+                ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 shadow-sm"
+                : "text-slate-300 hover:bg-slate-700/50 hover:text-white"
+            )}
+          >
+            <Monitor
+              className={cn(
+                "h-5 w-5 flex-shrink-0",
+                pathname.startsWith("/tv-dashboard") ? "text-cyan-400" : "text-slate-400"
+              )}
+            />
+            {!collapsed && <span>TV Dashboard</span>}
+          </Link>
+
           {/* Admin - visível apenas para administradores */}
           {session?.user?.nivel === "admin" && (
             <>
-              <div className="my-3 border-t border-slate-700/50" />
-              
-              <Link
-                href="/tv-dashboard"
-                onClick={() => setMobileOpen(false)}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
-                  pathname.startsWith("/tv-dashboard")
-                    ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 shadow-sm"
-                    : "text-slate-300 hover:bg-slate-700/50 hover:text-white"
-                )}
-              >
-                <Monitor
-                  className={cn(
-                    "h-5 w-5 flex-shrink-0",
-                    pathname.startsWith("/tv-dashboard") ? "text-cyan-400" : "text-slate-400"
-                  )}
-                />
-                {!collapsed && <span>TV Dashboard</span>}
-              </Link>
-
               <Link
                 href="/admin"
                 onClick={() => setMobileOpen(false)}
