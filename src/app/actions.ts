@@ -103,6 +103,9 @@ export async function criarReferencia(formData: FormData) {
       previsao_producao: formData.get("previsao_producao")
         ? parseInt(formData.get("previsao_producao") as string)
         : 0,
+      quantidade_produzida: formData.get("quantidade_produzida")
+        ? parseInt(formData.get("quantidade_produzida") as string)
+        : 0,
       producao_diaria_pessoa: formData.get("producao_diaria_pessoa")
         ? parseInt(formData.get("producao_diaria_pessoa") as string)
         : 0,
@@ -138,6 +141,9 @@ export async function editarReferencia(id: number, formData: FormData) {
         : 0,
       previsao_producao: formData.get("previsao_producao")
         ? parseInt(formData.get("previsao_producao") as string)
+        : 0,
+      quantidade_produzida: formData.get("quantidade_produzida")
+        ? parseInt(formData.get("quantidade_produzida") as string)
         : 0,
       producao_diaria_pessoa: formData.get("producao_diaria_pessoa")
         ? parseInt(formData.get("producao_diaria_pessoa") as string)

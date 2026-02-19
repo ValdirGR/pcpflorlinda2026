@@ -38,6 +38,7 @@ export default async function EditarReferenciaPage({
     nome: referencia.nome,
     foto: referencia.foto,
     previsao_producao: referencia.previsao_producao,
+    quantidade_produzida: referencia.quantidade_produzida,
     tempo_producao: referencia.tempo_producao,
     producao_diaria_pessoa: referencia.producao_diaria_pessoa,
     data_distribuicao: referencia.data_distribuicao

@@ -16,6 +16,7 @@ interface ReferenciaData {
     nome: string;
     foto?: string | null;
     previsao_producao: number;
+    quantidade_produzida?: number | null;
     tempo_producao: number;
     producao_diaria_pessoa: number;
     data_distribuicao?: string | null;
@@ -111,6 +112,19 @@ export function ReferenciaForm({
                         type="number"
                         name="previsao_producao"
                         defaultValue={referencia?.previsao_producao ?? ""}
+                        className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-400"
+                        placeholder="0"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                        Quantidade Produzida
+                    </label>
+                    <input
+                        type="number"
+                        name="quantidade_produzida"
+                        defaultValue={referencia?.quantidade_produzida ?? ""}
                         className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-pink-500/20 focus:border-pink-400"
                         placeholder="0"
                     />
