@@ -95,7 +95,7 @@ export function EditarUsuarioForm({ usuario }: { usuario: UsuarioData }) {
             className={cn(
               "h-14 w-14 rounded-full flex items-center justify-center text-xl font-bold text-white",
               usuario.ativo
-                ? "bg-gradient-to-br from-purple-400 to-indigo-500"
+                ? "bg-linear-to-br from-purple-400 to-indigo-500"
                 : "bg-gray-300"
             )}
           >
@@ -222,7 +222,7 @@ export function EditarUsuarioForm({ usuario }: { usuario: UsuarioData }) {
               "flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white rounded-lg transition-all shadow-sm",
               isPending
                 ? "bg-gray-400 cursor-not-allowed"
-                : "bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600"
+                : "bg-linear-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600"
             )}
           >
             <Save className="h-4 w-4" />
@@ -317,7 +317,7 @@ export function EditarUsuarioForm({ usuario }: { usuario: UsuarioData }) {
                   "flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white rounded-lg transition-all shadow-sm",
                   isPendingSenha
                     ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
+                    : "bg-linear-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600"
                 )}
               >
                 <KeyRound className="h-4 w-4" />

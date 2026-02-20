@@ -207,7 +207,7 @@ export default function NovoUsuarioPage() {
                 "flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-white rounded-lg transition-all shadow-sm",
                 isPending
                   ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600"
+                  : "bg-linear-to-r from-purple-500 to-indigo-500 hover:from-purple-600 hover:to-indigo-600"
               )}
             >
               <Save className="h-4 w-4" />

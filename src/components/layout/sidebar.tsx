@@ -62,7 +62,7 @@ export default function Sidebar({
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed top-0 left-0 z-50 h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white transition-all duration-300 flex flex-col",
+          "fixed top-0 left-0 z-50 h-screen bg-linear-to-b from-slate-900 to-slate-800 text-white transition-all duration-300 flex flex-col",
           collapsed ? "w-[72px]" : "w-64",
           mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
@@ -113,13 +113,13 @@ export default function Sidebar({
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
                   isActive
-                    ? "bg-gradient-to-r from-pink-500/20 to-rose-500/20 text-pink-300 shadow-sm"
+                    ? "bg-linear-to-r from-pink-500/20 to-rose-500/20 text-pink-300 shadow-sm"
                     : "text-slate-300 hover:bg-slate-700/50 hover:text-white"
                 )}
               >
                 <item.icon
                   className={cn(
-                    "h-5 w-5 flex-shrink-0",
+                    "h-5 w-5 shrink-0",
                     isActive ? "text-pink-400" : "text-slate-400"
                   )}
                 />
@@ -137,13 +137,13 @@ export default function Sidebar({
             className={cn(
               "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
               pathname.startsWith("/tv-dashboard")
-                ? "bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 shadow-sm"
+                ? "bg-linear-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300 shadow-sm"
                 : "text-slate-300 hover:bg-slate-700/50 hover:text-white"
             )}
           >
             <Monitor
               className={cn(
-                "h-5 w-5 flex-shrink-0",
+                "h-5 w-5 shrink-0",
                 pathname.startsWith("/tv-dashboard") ? "text-cyan-400" : "text-slate-400"
               )}
             />
@@ -159,13 +159,13 @@ export default function Sidebar({
                 className={cn(
                   "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
                   pathname.startsWith("/admin")
-                    ? "bg-gradient-to-r from-purple-500/20 to-indigo-500/20 text-purple-300 shadow-sm"
+                    ? "bg-linear-to-r from-purple-500/20 to-indigo-500/20 text-purple-300 shadow-sm"
                     : "text-slate-300 hover:bg-slate-700/50 hover:text-white"
                 )}
               >
                 <Shield
                   className={cn(
-                    "h-5 w-5 flex-shrink-0",
+                    "h-5 w-5 shrink-0",
                     pathname.startsWith("/admin") ? "text-purple-400" : "text-slate-400"
                   )}
                 />
@@ -184,7 +184,7 @@ export default function Sidebar({
                 collapsed ? "justify-center" : "px-3 py-2"
               )}
             >
-              <div className="flex-shrink-0 h-8 w-8 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center text-sm font-bold">
+              <div className="shrink-0 h-8 w-8 rounded-full bg-linear-to-br from-pink-400 to-rose-500 flex items-center justify-center text-sm font-bold">
                 {session.user.name?.charAt(0).toUpperCase()}
               </div>
               {!collapsed && (
@@ -206,7 +206,7 @@ export default function Sidebar({
               collapsed && "justify-center"
             )}
           >
-            <LogOut className="h-5 w-5 flex-shrink-0" />
+            <LogOut className="h-5 w-5 shrink-0" />
             {!collapsed && <span>Sair</span>}
           </button>
         </div>
