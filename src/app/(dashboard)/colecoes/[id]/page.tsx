@@ -66,7 +66,11 @@ export default async function ColecaoDetalhePage({ params, searchParams }: PageP
     // Determine category for counting
     let category = "";
 
-    if (statusEtapa === "concluida") {
+    if (!etapaInfo) {
+      // Referência sem etapas = pendente
+      category = "pendente";
+      counts.pendente++;
+    } else if (statusEtapa === "concluida") {
       category = "concluido";
       counts.concluido++;
     } else if (isOverdueItem) {
@@ -233,7 +237,7 @@ export default async function ColecaoDetalhePage({ params, searchParams }: PageP
                   <p className="text-sm text-gray-900 truncate">{ref.nome}</p>
 
                   {/* Etapa ativa */}
-                  {etapaInfo && (
+                  {etapaInfo ? (
                     <>
                       <div className="flex items-center gap-1.5 mt-2">
                         <span
@@ -260,6 +264,13 @@ export default async function ColecaoDetalhePage({ params, searchParams }: PageP
                         </div>
                       )}
                     </>
+                  ) : (
+                    <div className="flex items-center gap-1.5 mt-2">
+                      <span className="inline-block w-2 h-2 rounded-full bg-gray-300" />
+                      <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
+                        Sem etapas
+                      </span>
+                    </div>
                   )}
 
                   <div className="mt-3">
