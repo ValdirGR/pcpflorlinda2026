@@ -4,6 +4,7 @@ import { Plus, Pencil, Trash2, Eye, Search, AlertTriangle } from "lucide-react";
 import { getStatusColor, getStatusLabel, calcPercentage, getEtapaDisplayColor, getEtapaDisplayInfo, isOverdue, isDeadlineNear } from "@/lib/utils";
 import { auth } from "@/auth";
 import { ReferenciasFilter } from "@/components/referencias/filter";
+import { DeleteReferenciaButton } from "@/components/referencias/delete-button";
 
 export const dynamic = "force-dynamic";
 
@@ -203,13 +204,11 @@ export default async function ReferenciasPage({ searchParams }: PageProps) {
                           </Link>
                         )}
                         {nivel === "admin" && (
-                          <Link
-                            href={`/referencias/${ref.id}/excluir`}
-                            className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Excluir"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Link>
+                          <DeleteReferenciaButton
+                            id={ref.id}
+                            nome={ref.nome}
+                            temEtapas={ref.etapas.length > 0}
+                          />
                         )}
                       </div>
                     </td>

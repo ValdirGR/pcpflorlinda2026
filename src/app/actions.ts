@@ -276,3 +276,26 @@ export async function listarColecoesParaSeletor() {
   });
   return colecoes;
 }
+
+export async function excluirReferencia(id: number) {
+  const etapasCount = await prisma.etapaProducao.count({
+    where: { referencia_id: id },
+  });
+
+  if (etapasCount > 0) {
+    throw new Error("Não é possível excluir referências que possuem etapas cadastradas.");
+  }
+
+  // Se não tem etapas, deleta a produção (se houver, por consistência) e a referência
+  await prisma.producao.deleteMany({
+    where: { referencia_id: id },
+  });
+
+  await prisma.referencia.delete({
+    where: { id },
+  });
+
+  revalidatePath("/referencias");
+  revalidatePath("/dashboard");
+  return { success: true };
+}
