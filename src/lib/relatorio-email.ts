@@ -2,7 +2,11 @@ import { Resend } from "resend";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+function getResendClient() {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) throw new Error("RESEND_API_KEY não configurada");
+  return new Resend(apiKey);
+}
 
 interface Destinatario {
   email: string;
@@ -19,6 +23,7 @@ export async function enviarRelatorioEmail(
   const resultado = { sucesso: 0, erros: 0, detalhes: [] as string[] };
 
   const fromEmail = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
+  const resend = getResendClient();
 
   for (const dest of destinatarios) {
     try {
