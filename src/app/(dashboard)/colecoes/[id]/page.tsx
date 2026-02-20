@@ -26,7 +26,7 @@ export default async function ColecaoDetalhePage({ params, searchParams }: PageP
       referencias: {
         include: {
           etapas: {
-            select: { nome: true, status: true, data_fim: true },
+            select: { nome: true, status: true, data_inicio: true, data_fim: true },
             orderBy: { created_at: "asc" },
           },
         },
@@ -229,24 +229,32 @@ export default async function ColecaoDetalhePage({ params, searchParams }: PageP
 
                   {/* Etapa ativa */}
                   {etapaInfo && (
-                    <div className="flex items-center gap-1.5 mt-2">
-                      <span
-                        className={`inline-block w-2 h-2 rounded-full ${etapaInfo.status === "concluida"
-                          ? "bg-green-500"
-                          : etapaInfo.status === "em_andamento"
-                            ? (etapaInfo.dataFim && isOverdue(etapaInfo.dataFim) ? "bg-red-500" : (etapaInfo.dataFim && isDeadlineNear(etapaInfo.dataFim, 5) ? "bg-yellow-500" : "bg-blue-500"))
-                            : "bg-orange-500"
-                          }`}
-                      />
-                      <span
-                        className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${getEtapaDisplayColor(
-                          etapaInfo.status,
-                          etapaInfo.dataFim
-                        )}`}
-                      >
-                        {etapaInfo.nome}
-                      </span>
-                    </div>
+                    <>
+                      <div className="flex items-center gap-1.5 mt-2">
+                        <span
+                          className={`inline-block w-2 h-2 rounded-full ${etapaInfo.status === "concluida"
+                            ? "bg-green-500"
+                            : etapaInfo.status === "em_andamento"
+                              ? (etapaInfo.dataFim && isOverdue(etapaInfo.dataFim) ? "bg-red-500" : (etapaInfo.dataFim && isDeadlineNear(etapaInfo.dataFim, 5) ? "bg-yellow-500" : "bg-blue-500"))
+                              : "bg-orange-500"
+                            }`}
+                        />
+                        <span
+                          className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${getEtapaDisplayColor(
+                            etapaInfo.status,
+                            etapaInfo.dataFim
+                          )}`}
+                        >
+                          {etapaInfo.nome}
+                        </span>
+                      </div>
+                      {etapaInfo.status !== "concluida" && (etapaInfo.dataInicio || etapaInfo.dataFim) && (
+                        <div className="mt-1 ml-3.5 text-[10px] text-gray-400">
+                          <span>Início: {formatDate(etapaInfo.dataInicio ?? null)}</span>
+                          <span className="ml-3">Fim: {formatDate(etapaInfo.dataFim ?? null)}</span>
+                        </div>
+                      )}
+                    </>
                   )}
 
                   <div className="mt-3">

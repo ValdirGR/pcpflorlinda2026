@@ -113,11 +113,12 @@ export interface EtapaDisplayInfo {
   status: string;
   urgente: boolean;
   todasConcluidas: boolean;
+  dataInicio?: string | null;
   dataFim?: string | null;
 }
 
 export function getEtapaDisplayInfo(
-  etapas: Array<{ nome: string; status: string | null; data_fim: Date | string | null }>
+  etapas: Array<{ nome: string; status: string | null; data_inicio?: Date | string | null; data_fim: Date | string | null }>
 ): EtapaDisplayInfo | null {
   if (!etapas || etapas.length === 0) return null;
 
@@ -128,6 +129,7 @@ export function getEtapaDisplayInfo(
       status: "concluida",
       urgente: false,
       todasConcluidas: true,
+      dataInicio: null,
       dataFim: null,
     };
   }
@@ -148,6 +150,7 @@ export function getEtapaDisplayInfo(
     status,
     urgente,
     todasConcluidas: false,
+    dataInicio: ativa.data_inicio ? (typeof ativa.data_inicio === 'string' ? ativa.data_inicio : ativa.data_inicio.toISOString()) : null,
     dataFim: ativa.data_fim ? (typeof ativa.data_fim === 'string' ? ativa.data_fim : ativa.data_fim.toISOString()) : null,
   };
 }
