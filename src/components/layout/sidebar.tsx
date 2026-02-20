@@ -10,6 +10,7 @@ import {
   FolderOpen,
   Tag,
   Factory,
+  PieChart,
   BarChart3,
   LogOut,
   Menu,
@@ -25,6 +26,7 @@ const navigation = [
   { name: "Coleções", href: "/colecoes", icon: FolderOpen },
   { name: "Referências", href: "/referencias", icon: Tag },
   { name: "Produção", href: "/producao", icon: Factory },
+  { name: "Gerencial", href: "/gerencial", icon: PieChart },
   { name: "Relatórios", href: "/relatorios", icon: BarChart3 },
 ];
 
