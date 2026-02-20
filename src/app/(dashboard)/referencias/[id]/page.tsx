@@ -126,7 +126,7 @@ export default async function ReferenciaDetalhePage({ params }: PageProps) {
               </div>
               <div className="w-full bg-gray-100 rounded-full h-3">
                 <div
-                  className={`h-3 rounded-full transition-all ${pct >= 100
+                  className={`h-3 rounded-full transition-all ${pct >= 100 || referencia.status === "finalizada"
                     ? "bg-linear-to-r from-green-400 to-green-500"
                     : "bg-linear-to-r from-pink-400 to-rose-500"
                     }`}
