@@ -260,7 +260,7 @@ export default async function ColecaoDetalhePage({ params, searchParams }: PageP
                   <div className="mt-3">
                     <div className="w-full bg-gray-100 rounded-full h-1.5">
                       <div
-                        className={`h-1.5 rounded-full ${refPct >= 100 ? "bg-green-500" : "bg-pink-500"
+                        className={`h-1.5 rounded-full ${refPct >= 100 || ref.status === "finalizada" ? "bg-green-500" : "bg-pink-500"
                           }`}
                         style={{ width: `${Math.min(refPct, 100)}%` }}
                       />
