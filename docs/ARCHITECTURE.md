@@ -257,4 +257,6 @@ Para garantir integridade:
 - **Não é permitido** excluir referências que possuam etapas cadastradas.
 - O botão de exclusão na interface permanece visível mas desabilitado (cinza) nesses casos.
 - A Server Action `excluirReferencia` valida novamente essa regra no servidor antes de executar a exclusão.
+- **Permissão:** Usuários com nível "editor" ou superior podem excluir (respeitando a regra acima).
+
 

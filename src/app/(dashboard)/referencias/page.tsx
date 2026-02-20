@@ -203,7 +203,7 @@ export default async function ReferenciasPage({ searchParams }: PageProps) {
                             <Pencil className="h-4 w-4" />
                           </Link>
                         )}
-                        {nivel === "admin" && (
+                        {nivel !== "visualizador" && (
                           <DeleteReferenciaButton
                             id={ref.id}
                             nome={ref.nome}

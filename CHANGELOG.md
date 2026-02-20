@@ -10,3 +10,5 @@
 ### Corrigido
 - **Tailwind CSS v4 Warnings:** Substituídos `bg-gradient-*` por `bg-linear-*` e `flex-shrink-0` por `shrink-0` em diversos arquivos (`sidebar.tsx`, `form.tsx`, etc.).
 - **Bugs de Layout:** Ajustes no `Sidebar` para evitar quebra de layout em telas menores.
+- **Permissão de Exclusão:** Liberado botão de exclusão para usuários com nível "editor" ou superior (antes apenas admin), mantendo a validação de etapas.
+
