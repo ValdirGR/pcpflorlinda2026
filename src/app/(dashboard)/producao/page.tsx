@@ -26,6 +26,7 @@ async function getProducaoData() {
     await Promise.all([
       // Todas as referências para estatísticas
       prisma.referencia.findMany({
+        where: { colecao: { status: { not: "desabilitada" } } },
         select: {
           id: true,
           codigo: true,
@@ -44,6 +45,7 @@ async function getProducaoData() {
 
       // Coleções com contagem de referências
       prisma.colecao.findMany({
+        where: { status: { not: "desabilitada" } },
         include: {
           _count: { select: { referencias: true } },
           referencias: {
@@ -305,9 +307,8 @@ export default async function ProducaoPage() {
                     <div className="flex items-center gap-2">
                       <div className="flex-1 bg-gray-100 rounded-full h-2.5">
                         <div
-                          className={`h-2.5 rounded-full transition-all ${
-                            col.percentual >= 100 ? "bg-green-500" : "bg-blue-500"
-                          }`}
+                          className={`h-2.5 rounded-full transition-all ${col.percentual >= 100 ? "bg-green-500" : "bg-blue-500"
+                            }`}
                           style={{ width: `${Math.min(col.percentual, 100)}%` }}
                         />
                       </div>
@@ -449,9 +450,8 @@ export default async function ProducaoPage() {
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2.5">
                 <div
-                  className={`h-2.5 rounded-full transition-all ${
-                    pctDiario >= 100 ? "bg-green-500" : "bg-blue-500"
-                  }`}
+                  className={`h-2.5 rounded-full transition-all ${pctDiario >= 100 ? "bg-green-500" : "bg-blue-500"
+                    }`}
                   style={{ width: `${pctDiario}%` }}
                 />
               </div>
@@ -473,9 +473,8 @@ export default async function ProducaoPage() {
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2.5">
                 <div
-                  className={`h-2.5 rounded-full transition-all ${
-                    pctSemanal >= 100 ? "bg-green-500" : "bg-blue-500"
-                  }`}
+                  className={`h-2.5 rounded-full transition-all ${pctSemanal >= 100 ? "bg-green-500" : "bg-blue-500"
+                    }`}
                   style={{ width: `${pctSemanal}%` }}
                 />
               </div>
@@ -497,9 +496,8 @@ export default async function ProducaoPage() {
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2.5">
                 <div
-                  className={`h-2.5 rounded-full transition-all ${
-                    pctMensal >= 100 ? "bg-green-500" : "bg-blue-500"
-                  }`}
+                  className={`h-2.5 rounded-full transition-all ${pctMensal >= 100 ? "bg-green-500" : "bg-blue-500"
+                    }`}
                   style={{ width: `${pctMensal}%` }}
                 />
               </div>
@@ -554,8 +552,8 @@ export default async function ProducaoPage() {
                     const pctRef =
                       ref.previsao_producao > 0
                         ? Math.round(
-                            (ref.quantidade_produzida / ref.previsao_producao) * 1000
-                          ) / 10
+                          (ref.quantidade_produzida / ref.previsao_producao) * 1000
+                        ) / 10
                         : 0;
                     return (
                       <tr key={ref.id} className="hover:bg-gray-50/50 transition-colors">
@@ -581,13 +579,12 @@ export default async function ProducaoPage() {
                         <td className="py-3 text-center">
                           {ref.diasRestantes !== null ? (
                             <span
-                              className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                                ref.diasRestantes <= 0
+                              className={`px-2.5 py-1 rounded-full text-xs font-medium ${ref.diasRestantes <= 0
                                   ? "bg-red-100 text-red-700"
                                   : ref.diasRestantes <= 7
-                                  ? "bg-amber-100 text-amber-700"
-                                  : "bg-blue-100 text-blue-700"
-                              }`}
+                                    ? "bg-amber-100 text-amber-700"
+                                    : "bg-blue-100 text-blue-700"
+                                }`}
                             >
                               {ref.diasRestantes <= 0
                                 ? "Vencido"

@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic";
 async function getDashboardData() {
   const [colecoes, referencias, producao, etapas, totalLateEtapas] = await Promise.all([
     prisma.colecao.findMany({
+      where: { status: { not: "desabilitada" } },
       include: {
         _count: { select: { referencias: true } },
         referencias: {
@@ -20,6 +21,7 @@ async function getDashboardData() {
       orderBy: { created_at: "desc" },
     }),
     prisma.referencia.findMany({
+      where: { colecao: { status: { not: "desabilitada" } } },
       include: {
         colecao: { select: { nome: true, codigo: true } },
         etapas: {
@@ -32,6 +34,7 @@ async function getDashboardData() {
       orderBy: { created_at: "desc" },
     }),
     prisma.producao.findMany({
+      where: { referencia: { colecao: { status: { not: "desabilitada" } } } },
       include: {
         referencia: {
           select: { nome: true, codigo: true },
@@ -43,7 +46,8 @@ async function getDashboardData() {
     prisma.etapaProducao.findMany({
       where: {
         status: { in: ["pendente", "em_andamento"] },
-        data_fim: { lt: new Date() }
+        data_fim: { lt: new Date() },
+        referencia: { colecao: { status: { not: "desabilitada" } } },
       },
       include: {
         referencia: {
@@ -56,7 +60,8 @@ async function getDashboardData() {
     prisma.etapaProducao.count({
       where: {
         status: { in: ["pendente", "em_andamento"] },
-        data_fim: { lt: new Date() }
+        data_fim: { lt: new Date() },
+        referencia: { colecao: { status: { not: "desabilitada" } } },
       }
     }),
   ]);
@@ -78,7 +83,7 @@ async function getDashboardData() {
   const refEmProducao = referencias.filter(
     (r) => r.status === "em_producao"
   ).length;
-  
+
   // Revert: Calculate delayed references based ONLY on explicit status to match "Collection Status: Normal" expectations
   const refAtrasadas = referencias.filter(
     (r) => ["atraso_desenvolvimento", "atraso_logistica"].includes(r.status)
@@ -87,7 +92,7 @@ async function getDashboardData() {
   const refAguardando = referencias.filter(
     (r) => r.status === "normal" && (r.quantidade_produzida || 0) === 0
   ).length;
-  
+
   // Use the real count from DB for the specific "Alerts" list, but don't mix it into the high-level "Ref Atrasadas" card
   // This resolves the divergence where users see "Normal" status on collections but "Delayed" indicators on the main cards.
   const etapasAtrasadasCounts = totalLateEtapas;
@@ -117,7 +122,7 @@ async function getDashboardData() {
       (acc, r) => acc + (r.previsao_producao || 0),
       0
     );
-    
+
     return {
       name: c.nome,
       produced: totalProd,

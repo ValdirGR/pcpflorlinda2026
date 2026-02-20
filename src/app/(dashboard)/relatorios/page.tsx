@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function RelatoriosPage() {
   const [colecoes, referencias, etapasAtrasadas] = await Promise.all([
     prisma.colecao.findMany({
+      where: { status: { not: "desabilitada" } },
       include: {
         _count: { select: { referencias: true } },
         referencias: {
@@ -21,12 +22,14 @@ export default async function RelatoriosPage() {
       orderBy: { nome: "asc" },
     }),
     prisma.referencia.findMany({
+      where: { colecao: { status: { not: "desabilitada" } } },
       select: { status: true },
     }),
     prisma.etapaProducao.findMany({
       where: {
         status: { in: ["pendente", "em_andamento"] },
         data_fim: { lt: new Date() },
+        referencia: { colecao: { status: { not: "desabilitada" } } },
       },
       include: {
         referencia: {
@@ -220,9 +223,8 @@ export default async function RelatoriosPage() {
                     <div className="flex items-center gap-2">
                       <div className="flex-1 bg-gray-100 rounded-full h-2">
                         <div
-                          className={`h-2 rounded-full ${
-                            c.pct >= 100 ? "bg-green-500" : "bg-pink-500"
-                          }`}
+                          className={`h-2 rounded-full ${c.pct >= 100 ? "bg-green-500" : "bg-pink-500"
+                            }`}
                           style={{ width: `${Math.min(c.pct, 100)}%` }}
                         />
                       </div>
