@@ -5,6 +5,7 @@ import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { hash } from "bcryptjs";
+import { registrarAtividade } from "@/lib/log-atividade";
 import type { usuarios_nivel } from "@prisma/client";
 
 // Helper: verify if the current user is admin
@@ -60,6 +61,12 @@ export async function criarUsuario(formData: FormData) {
     },
   });
 
+  await registrarAtividade({
+    acao: "criar",
+    entidade: "usuario",
+    descricao: `Criou o usuário "${formData.get("nome")}" (${email}) com nível "${formData.get("nivel")}"`,
+  });
+
   revalidatePath("/admin/usuarios");
   revalidatePath("/admin");
   redirect("/admin/usuarios");
@@ -92,6 +99,13 @@ export async function editarUsuario(id: number, formData: FormData) {
     },
   });
 
+  await registrarAtividade({
+    acao: "editar",
+    entidade: "usuario",
+    entidadeId: id,
+    descricao: `Editou o usuário "${formData.get("nome")}" (${email})`,
+  });
+
   revalidatePath("/admin/usuarios");
   revalidatePath(`/admin/usuarios/${id}`);
   revalidatePath("/admin");
@@ -117,6 +131,14 @@ export async function alterarSenhaUsuario(id: number, formData: FormData) {
   await prisma.usuario.update({
     where: { id },
     data: { senha: senhaHash },
+  });
+
+  const usuario = await prisma.usuario.findUnique({ where: { id }, select: { nome: true, email: true } });
+  await registrarAtividade({
+    acao: "alterar_senha",
+    entidade: "usuario",
+    entidadeId: id,
+    descricao: `Alterou a senha do usuário "${usuario?.nome}" (${usuario?.email})`,
   });
 
   revalidatePath(`/admin/usuarios/${id}`);
@@ -145,6 +167,13 @@ export async function toggleStatusUsuario(id: number) {
     data: { ativo: !usuario.ativo },
   });
 
+  await registrarAtividade({
+    acao: "alterar_status",
+    entidade: "usuario",
+    entidadeId: id,
+    descricao: `${!usuario.ativo ? "Ativou" : "Desativou"} o usuário (ID: ${id})`,
+  });
+
   revalidatePath("/admin/usuarios");
   revalidatePath("/admin");
   return { success: true };
@@ -163,8 +192,17 @@ export async function excluirUsuario(id: number) {
     where: { usuario_id: id },
   });
 
+  const usuario = await prisma.usuario.findUnique({ where: { id }, select: { nome: true, email: true } });
+
   await prisma.usuario.delete({
     where: { id },
+  });
+
+  await registrarAtividade({
+    acao: "excluir",
+    entidade: "usuario",
+    entidadeId: id,
+    descricao: `Excluiu o usuário "${usuario?.nome}" (${usuario?.email})`,
   });
 
   revalidatePath("/admin/usuarios");

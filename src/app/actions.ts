@@ -3,6 +3,7 @@
 import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { registrarAtividade } from "@/lib/log-atividade";
 import type {
   colecoes_status,
   referencias_status,
@@ -11,10 +12,12 @@ import type {
 } from "@prisma/client";
 
 export async function criarColecao(formData: FormData) {
-  await prisma.colecao.create({
+  const nome = formData.get("nome") as string;
+  const codigo = formData.get("codigo") as string;
+  const colecao = await prisma.colecao.create({
     data: {
-      nome: formData.get("nome") as string,
-      codigo: formData.get("codigo") as string,
+      nome,
+      codigo,
       data_inicio: new Date(formData.get("data_inicio") as string || new Date().toISOString()),
       data_fim: new Date(formData.get("data_fim") as string || new Date().toISOString()),
       prazo_inicial_estilo: formData.get("prazo_inicial_estilo")
@@ -34,12 +37,21 @@ export async function criarColecao(formData: FormData) {
     },
   });
 
+  await registrarAtividade({
+    acao: "criar",
+    entidade: "colecao",
+    entidadeId: colecao.id,
+    descricao: `Criou a coleção "${nome}" (${codigo})`,
+  });
+
   revalidatePath("/colecoes");
   revalidatePath("/dashboard");
   redirect("/colecoes");
 }
 
 export async function editarColecao(id: number, formData: FormData) {
+  const nome = formData.get("nome") as string;
+  const codigo = formData.get("codigo") as string;
   await prisma.colecao.update({
     where: { id },
     data: {
@@ -64,6 +76,13 @@ export async function editarColecao(id: number, formData: FormData) {
     },
   });
 
+  await registrarAtividade({
+    acao: "editar",
+    entidade: "colecao",
+    entidadeId: id,
+    descricao: `Editou a coleção "${nome}" (${codigo})`,
+  });
+
   revalidatePath("/colecoes");
   revalidatePath(`/colecoes/${id}`);
   revalidatePath("/dashboard");
@@ -71,6 +90,7 @@ export async function editarColecao(id: number, formData: FormData) {
 }
 
 export async function excluirColecao(id: number) {
+  const colecao = await prisma.colecao.findUnique({ where: { id }, select: { nome: true, codigo: true } });
   const refs = await prisma.referencia.findMany({
     where: { colecao_id: id },
     select: { id: true },
@@ -84,6 +104,14 @@ export async function excluirColecao(id: number) {
   await prisma.referencia.deleteMany({ where: { colecao_id: id } });
   await prisma.colecao.delete({ where: { id } });
 
+  await registrarAtividade({
+    acao: "excluir",
+    entidade: "colecao",
+    entidadeId: id,
+    descricao: `Excluiu a coleção "${colecao?.nome}" (${colecao?.codigo})`,
+    detalhes: `${refs.length} referência(s) também foram excluídas`,
+  });
+
   revalidatePath("/colecoes");
   revalidatePath("/dashboard");
   redirect("/colecoes");
@@ -91,7 +119,9 @@ export async function excluirColecao(id: number) {
 
 export async function criarReferencia(formData: FormData) {
   const fotoValue = formData.get("foto") as string;
-  await prisma.referencia.create({
+  const nome = formData.get("nome") as string;
+  const codigo = formData.get("codigo") as string;
+  const ref = await prisma.referencia.create({
     data: {
       colecao_id: parseInt(formData.get("colecao_id") as string),
       codigo: formData.get("codigo") as string,
@@ -120,6 +150,13 @@ export async function criarReferencia(formData: FormData) {
       para_marketing: formData.get("para_marketing") === "on",
       observacoes: (formData.get("observacoes") as string) || null,
     },
+  });
+
+  await registrarAtividade({
+    acao: "criar",
+    entidade: "referencia",
+    entidadeId: ref.id,
+    descricao: `Criou a referência "${nome}" (${codigo})`,
   });
 
   revalidatePath("/referencias");
@@ -129,6 +166,8 @@ export async function criarReferencia(formData: FormData) {
 
 export async function editarReferencia(id: number, formData: FormData) {
   const fotoValue = formData.get("foto") as string;
+  const nome = formData.get("nome") as string;
+  const codigo = formData.get("codigo") as string;
   await prisma.referencia.update({
     where: { id },
     data: {
@@ -161,6 +200,13 @@ export async function editarReferencia(id: number, formData: FormData) {
     },
   });
 
+  await registrarAtividade({
+    acao: "editar",
+    entidade: "referencia",
+    entidadeId: id,
+    descricao: `Editou a referência "${nome}" (${codigo})`,
+  });
+
   revalidatePath("/referencias");
   revalidatePath(`/referencias/${id}`);
   revalidatePath("/dashboard");
@@ -168,9 +214,17 @@ export async function editarReferencia(id: number, formData: FormData) {
 }
 
 export async function atualizarStatusReferencia(id: number, status: referencias_status) {
+  const ref = await prisma.referencia.findUnique({ where: { id }, select: { nome: true, codigo: true } });
   await prisma.referencia.update({
     where: { id },
     data: { status },
+  });
+
+  await registrarAtividade({
+    acao: "alterar_status",
+    entidade: "referencia",
+    entidadeId: id,
+    descricao: `Alterou status da referência "${ref?.nome}" para "${status}"`,
   });
 
   revalidatePath("/referencias");
@@ -199,6 +253,14 @@ export async function criarProducao(formData: FormData) {
     },
   });
 
+  const ref = await prisma.referencia.findUnique({ where: { id: referencia_id }, select: { nome: true, codigo: true } });
+  await registrarAtividade({
+    acao: "criar",
+    entidade: "producao",
+    entidadeId: referencia_id,
+    descricao: `Registrou produção de ${quantidade_dia} peças para "${ref?.nome}" (${ref?.codigo})`,
+  });
+
   revalidatePath("/producao");
   revalidatePath("/referencias");
   revalidatePath("/dashboard");
@@ -207,11 +269,12 @@ export async function criarProducao(formData: FormData) {
 
 export async function adicionarEtapa(formData: FormData) {
   const referencia_id = parseInt(formData.get("referencia_id") as string);
+  const nomeEtapa = formData.get("nome") as string;
 
   await prisma.etapaProducao.create({
     data: {
       referencia_id,
-      nome: formData.get("nome") as string,
+      nome: nomeEtapa,
       status: (formData.get("status") as etapas_producao_status) || "pendente",
       data_inicio: formData.get("data_inicio")
         ? new Date(formData.get("data_inicio") as string)
@@ -223,6 +286,14 @@ export async function adicionarEtapa(formData: FormData) {
     },
   });
 
+  const ref = await prisma.referencia.findUnique({ where: { id: referencia_id }, select: { nome: true, codigo: true } });
+  await registrarAtividade({
+    acao: "criar",
+    entidade: "etapa",
+    entidadeId: referencia_id,
+    descricao: `Adicionou etapa "${nomeEtapa}" na referência "${ref?.nome}" (${ref?.codigo})`,
+  });
+
   revalidatePath(`/referencias/${referencia_id}`);
   revalidatePath("/dashboard");
   redirect(`/referencias/${referencia_id}`);
@@ -230,11 +301,12 @@ export async function adicionarEtapa(formData: FormData) {
 
 export async function atualizarEtapa(id: number, formData: FormData) {
   const referencia_id = parseInt(formData.get("referencia_id") as string);
+  const nomeEtapa = formData.get("nome") as string;
 
   await prisma.etapaProducao.update({
     where: { id },
     data: {
-      nome: formData.get("nome") as string,
+      nome: nomeEtapa,
       status: formData.get("status") as etapas_producao_status,
       data_inicio: formData.get("data_inicio")
         ? new Date(formData.get("data_inicio") as string)
@@ -246,14 +318,31 @@ export async function atualizarEtapa(id: number, formData: FormData) {
     },
   });
 
+  const ref = await prisma.referencia.findUnique({ where: { id: referencia_id }, select: { nome: true, codigo: true } });
+  await registrarAtividade({
+    acao: "editar",
+    entidade: "etapa",
+    entidadeId: id,
+    descricao: `Atualizou etapa "${nomeEtapa}" na referência "${ref?.nome}" (${ref?.codigo})`,
+  });
+
   revalidatePath(`/referencias/${referencia_id}`);
   revalidatePath("/dashboard");
   redirect(`/referencias/${referencia_id}`);
 }
 
 export async function excluirEtapa(id: number, referencia_id: number) {
+  const etapa = await prisma.etapaProducao.findUnique({ where: { id }, select: { nome: true } });
   await prisma.etapaProducao.delete({
     where: { id },
+  });
+
+  const ref = await prisma.referencia.findUnique({ where: { id: referencia_id }, select: { nome: true, codigo: true } });
+  await registrarAtividade({
+    acao: "excluir",
+    entidade: "etapa",
+    entidadeId: id,
+    descricao: `Excluiu etapa "${etapa?.nome}" da referência "${ref?.nome}" (${ref?.codigo})`,
   });
 
   revalidatePath(`/referencias/${referencia_id}`);
@@ -278,6 +367,7 @@ export async function listarColecoesParaSeletor() {
 }
 
 export async function excluirReferencia(id: number) {
+  const ref = await prisma.referencia.findUnique({ where: { id }, select: { nome: true, codigo: true } });
   const etapasCount = await prisma.etapaProducao.count({
     where: { referencia_id: id },
   });
@@ -293,6 +383,13 @@ export async function excluirReferencia(id: number) {
 
   await prisma.referencia.delete({
     where: { id },
+  });
+
+  await registrarAtividade({
+    acao: "excluir",
+    entidade: "referencia",
+    entidadeId: id,
+    descricao: `Excluiu a referência "${ref?.nome}" (${ref?.codigo})`,
   });
 
   revalidatePath("/referencias");
