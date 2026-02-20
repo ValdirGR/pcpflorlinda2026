@@ -59,32 +59,46 @@ export default async function ColecaoDetalhePage({ params, searchParams }: PageP
 
   const filteredReferencias = colecao.referencias.filter((ref) => {
     const etapaInfo = getEtapaDisplayInfo(ref.etapas as any);
+    const statusEtapa = etapaInfo?.status;
+
+    // Atraso/atenção baseados na última etapa
     const isOverdueItem = etapaInfo?.dataFim && isOverdue(etapaInfo.dataFim);
     const isNearItem = etapaInfo?.dataFim && isDeadlineNear(etapaInfo.dataFim, 5);
-    const statusEtapa = etapaInfo?.status;
 
     // Determine category for counting
     let category = "";
 
     if (!etapaInfo) {
-      // Referência sem etapas = pendente
-      category = "pendente";
-      counts.pendente++;
-    } else if (statusEtapa === "concluida") {
-      category = "concluido";
-      counts.concluido++;
-    } else if (isOverdueItem) {
-      category = "atrasado";
-      counts.atrasado++;
-    } else if (isNearItem) {
-      category = "atencao";
-      counts.atencao++;
+      // Sem etapas ou todas concluídas
+      if (ref.etapas.length === 0) {
+        category = "pendente";
+        counts.pendente++;
+      } else {
+        category = "concluido";
+        counts.concluido++;
+      }
     } else if (statusEtapa === "pendente") {
-      category = "pendente";
-      counts.pendente++;
+      if (isOverdueItem) {
+        category = "atrasado";
+        counts.atrasado++;
+      } else if (isNearItem) {
+        category = "atencao";
+        counts.atencao++;
+      } else {
+        category = "pendente";
+        counts.pendente++;
+      }
     } else if (statusEtapa === "em_andamento") {
-      category = "em_andamento_dia";
-      counts.em_andamento_dia++;
+      if (isOverdueItem) {
+        category = "atrasado";
+        counts.atrasado++;
+      } else if (isNearItem) {
+        category = "atencao";
+        counts.atencao++;
+      } else {
+        category = "em_andamento_dia";
+        counts.em_andamento_dia++;
+      }
     }
 
     // Filter based on selected status

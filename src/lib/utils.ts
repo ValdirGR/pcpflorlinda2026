@@ -134,10 +134,9 @@ export function getEtapaDisplayInfo(
     };
   }
 
-  const ativa = etapas.find(
-    (e) => e.status === "pendente" || e.status === "em_andamento"
-  );
-  if (!ativa) return null;
+  // Sempre considerar a última etapa cadastrada (array já ordenado por created_at asc)
+  const ativa = etapas[etapas.length - 1];
+  if (!ativa || ativa.status === "concluida") return null;
 
   const status = ativa.status || "pendente";
   const urgente =
