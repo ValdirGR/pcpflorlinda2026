@@ -126,7 +126,17 @@ Atualiza apenas o status de uma referência.
 
 **Retorna:** `{ success: true }`
 
+
+#### `excluirReferencia(id: number)`
+
+Exclui uma referência **apenas se não houver etapas cadastradas**. Caso contrário, lança um erro.
+
+**Efeitos:**
+- `revalidatePath("/referencias")`, `revalidatePath("/dashboard")`
+- Retorna `{ success: true }` ou lança exceção.
+
 ---
+
 
 ### 3.3 Produção
 

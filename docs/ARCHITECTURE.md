@@ -109,10 +109,19 @@ pcp-flor-linda/
 │   │   │   ├── collection-progress.tsx # Progresso das coleções
 │   │   │   ├── recent-etapas.tsx      # Etapas recentes
 │   │   │   └── referencias-grid.tsx   # Grid de referências com fotos
+│   │   ├── gerencial/
+│   │   │   ├── gerencial-content.tsx  # Dashboard Gerencial (Client Wrapper)
+│   │   │   ├── kpi-cards.tsx          # Cards de KPIs
+│   │   │   ├── status-donut.tsx       # Gráfico de Status
+│   │   │   ├── metas-heatmap.tsx      # Mapa de calor de metas
+│   │   │   └── top-atrasados.tsx      # Lista de atrasados
 │   │   ├── layout/
 │   │   │   ├── dashboard-layout.tsx   # Layout wrapper (auth check)
 │   │   │   ├── header.tsx             # Header com busca e user
 │   │   │   └── sidebar.tsx            # Sidebar de navegação
+│   │   ├── referencias/
+│   │   │   ├── filter.tsx             # Filtros da lista
+│   │   │   └── delete-button.tsx      # Botão de exclusão com validação
 │   │   └── providers/
 │   │       └── auth-provider.tsx      # SessionProvider do NextAuth
 │   │
@@ -232,3 +241,20 @@ Browser → <form action={serverAction}> → Server Action → Prisma.create/upd
 | `DATABASE_URL` | Connection string MySQL | `mysql://user:pass@host:3306/db` |
 | `NEXTAUTH_SECRET` | Secret para JWT | `base64 string (32 bytes)` |
 | `NEXTAUTH_URL` | URL base da aplicação | `https://pcpflorlinda.vercel.app` |
+
+---
+
+## 8. Regras de Negócio Importantes
+
+### 8.1 Metas de Produção (Fallback)
+O sistema prioriza dados reais da tabela `Producao`. Porém, se não houver registros diários para o cálculo de metas (hoje/semana/mês), ele entra em modo de **Estimativa**:
+- Utiliza o campo `referencia.quantidade_produzida` (total).
+- Calcula a média diária baseada nos dias úteis decorridos desde o início da coleção.
+- Exibe o termo "(média estimada)" nos cards do dashboard.
+
+### 8.2 Exclusão de Referências
+Para garantir integridade:
+- **Não é permitido** excluir referências que possuam etapas cadastradas.
+- O botão de exclusão na interface permanece visível mas desabilitado (cinza) nesses casos.
+- A Server Action `excluirReferencia` valida novamente essa regra no servidor antes de executar a exclusão.
+
