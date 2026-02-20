@@ -2,7 +2,7 @@ import prisma from "@/lib/prisma";
 import Link from "next/link";
 import Image from "next/image";
 import { formatDate, getStatusColor, getStatusLabel, calcPercentage, isOverdue, getEtapaDisplayColor, getEtapaDisplayInfo, isDeadlineNear } from "@/lib/utils";
-import { ArrowLeft, Pencil, Tag, AlertTriangle, ImageOff } from "lucide-react";
+import { ArrowLeft, Pencil, Tag, AlertTriangle, ImageOff, Camera } from "lucide-react";
 import { CollectionStatusFilter } from "@/components/colecoes/status-filter";
 import { auth } from "@/auth";
 import { notFound } from "next/navigation";
@@ -209,9 +209,14 @@ export default async function ColecaoDetalhePage({ params, searchParams }: PageP
 
                 <div className="p-4">
                   <div className="flex items-start justify-between mb-2">
-                    <span className="font-mono text-sm font-medium text-pink-600">
-                      {ref.codigo}
-                    </span>
+                    <div className="flex items-center gap-1">
+                      <span className="font-mono text-sm font-medium text-pink-600">
+                        {ref.codigo}
+                      </span>
+                      {ref.para_marketing && (
+                        <Camera className="h-3.5 w-3.5 text-purple-500" />
+                      )}
+                    </div>
                     <div className="flex items-center gap-1">
                       {hasOverdue && (
                         <AlertTriangle className="h-4 w-4 text-red-500" />
