@@ -126,29 +126,48 @@ async function getGerencialData() {
     // ============================
     const totalMeta = referencias.reduce((acc, r) => acc + (r.previsao_producao || 0), 0);
 
-    // Group production by week
-    const prodByWeek: Record<string, number> = {};
-    producoes.forEach((p) => {
-        const d = new Date(p.data_producao);
-        const weekStart = new Date(d);
-        weekStart.setDate(d.getDate() - d.getDay());
-        const key = weekStart.toISOString().slice(0, 10);
-        prodByWeek[key] = (prodByWeek[key] || 0) + p.quantidade_dia;
-    });
+    let burndownData: { label: string; acumulado: number; meta: number }[] = [];
 
-    const weekKeys = Object.keys(prodByWeek).sort();
-    let acumulado = 0;
-    const burndownData = weekKeys.map((week, i) => {
-        acumulado += prodByWeek[week];
-        const metaIdeal = weekKeys.length > 1
-            ? Math.round((totalMeta / (weekKeys.length - 1)) * i)
-            : totalMeta;
-        return {
-            label: new Date(week).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
-            acumulado,
-            meta: metaIdeal,
-        };
-    });
+    if (producoes.length > 0) {
+        // Group production by week from daily logs
+        const prodByWeek: Record<string, number> = {};
+        producoes.forEach((p) => {
+            const d = new Date(p.data_producao);
+            const weekStart = new Date(d);
+            weekStart.setDate(d.getDate() - d.getDay());
+            const key = weekStart.toISOString().slice(0, 10);
+            prodByWeek[key] = (prodByWeek[key] || 0) + p.quantidade_dia;
+        });
+
+        const weekKeys = Object.keys(prodByWeek).sort();
+        let acumulado = 0;
+        burndownData = weekKeys.map((week, i) => {
+            acumulado += prodByWeek[week];
+            const metaIdeal = weekKeys.length > 1
+                ? Math.round((totalMeta / (weekKeys.length - 1)) * i)
+                : totalMeta;
+            return {
+                label: new Date(week).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+                acumulado,
+                meta: metaIdeal,
+            };
+        });
+    } else {
+        // Fallback: show burnup per collection using quantidade_produzida
+        let acumulado = 0;
+        let metaAcumulada = 0;
+        burndownData = colecoes.map((c) => {
+            const prodCol = c.referencias.reduce((acc, r) => acc + (r.quantidade_produzida || 0), 0);
+            const metaCol = c.referencias.reduce((acc, r) => acc + (r.previsao_producao || 0), 0);
+            acumulado += prodCol;
+            metaAcumulada += metaCol;
+            return {
+                label: c.codigo || c.nome.substring(0, 10),
+                acumulado,
+                meta: metaAcumulada,
+            };
+        });
+    }
 
     // ============================
     // 4. HEATMAP DE REFERÊNCIAS
@@ -182,10 +201,29 @@ async function getGerencialData() {
     // ============================
     // 6. EVOLUÇÃO SEMANAL
     // ============================
-    const evolucaoData = weekKeys.map((week) => ({
-        semana: new Date(week).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
-        total: prodByWeek[week],
-    }));
+    let evolucaoData: { semana: string; total: number }[] = [];
+
+    if (producoes.length > 0) {
+        const prodByWeek: Record<string, number> = {};
+        producoes.forEach((p) => {
+            const d = new Date(p.data_producao);
+            const weekStart = new Date(d);
+            weekStart.setDate(d.getDate() - d.getDay());
+            const key = weekStart.toISOString().slice(0, 10);
+            prodByWeek[key] = (prodByWeek[key] || 0) + p.quantidade_dia;
+        });
+        const weekKeys = Object.keys(prodByWeek).sort();
+        evolucaoData = weekKeys.map((week) => ({
+            semana: new Date(week).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
+            total: prodByWeek[week],
+        }));
+    } else {
+        // Fallback: show production per collection
+        evolucaoData = colecoes.map((c) => ({
+            semana: c.codigo || c.nome.substring(0, 10),
+            total: c.referencias.reduce((acc, r) => acc + (r.quantidade_produzida || 0), 0),
+        }));
+    }
 
     // ============================
     // 7. RANKING ATRASADAS
@@ -215,23 +253,30 @@ async function getGerencialData() {
     );
     const faltando = totalMeta - totalProduzido;
 
-    // Calculate business days remaining (rough approximation)
-    const lastProduction = producoes.length > 0
-        ? new Date(producoes[producoes.length - 1].data_producao)
-        : now;
-    const firstProduction = producoes.length > 0
-        ? new Date(producoes[0].data_producao)
-        : now;
-    const diasTrabalhados = Math.max(
-        1,
-        Math.ceil((lastProduction.getTime() - firstProduction.getTime()) / (1000 * 3600 * 24)) || 1
-    );
+    // Calculate days worked from collection dates or production logs
+    let diasTrabalhados: number;
+    if (producoes.length > 0) {
+        const lastProd = new Date(producoes[producoes.length - 1].data_producao);
+        const firstProd = new Date(producoes[0].data_producao);
+        diasTrabalhados = Math.max(1, Math.ceil((lastProd.getTime() - firstProd.getTime()) / (1000 * 3600 * 24)) || 1);
+    } else {
+        // Use earliest collection start to today
+        const earliestStart = colecoes.reduce((min, c) => {
+            const d = new Date(c.data_inicio).getTime();
+            return d < min ? d : min;
+        }, now.getTime());
+        diasTrabalhados = Math.max(1, Math.ceil((now.getTime() - earliestStart) / (1000 * 3600 * 24)));
+    }
 
-    // Average daily production based on actual data
     const mediaRealizada = totalProduzido / diasTrabalhados;
 
-    // Days needed at current rate to finish
-    const mediaNecessaria = faltando > 0 ? faltando / Math.max(diasTrabalhados * 0.5, 20) : mediaRealizada;
+    // Calculate remaining deadline from latest collection end date
+    const latestEnd = colecoes.reduce((max, c) => {
+        const d = new Date(c.data_fim).getTime();
+        return d > max ? d : max;
+    }, now.getTime());
+    const diasRestantes = Math.max(1, Math.ceil((latestEnd - now.getTime()) / (1000 * 3600 * 24)));
+    const mediaNecessaria = faltando > 0 ? faltando / diasRestantes : mediaRealizada;
 
     return {
         etapasPorColecao,
