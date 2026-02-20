@@ -209,3 +209,67 @@ export async function excluirUsuario(id: number) {
   revalidatePath("/admin");
   redirect("/admin/usuarios");
 }
+
+// ========================
+// Mutations de E-mails do Relatório
+// ========================
+
+export async function adicionarEmailRelatorio(formData: FormData) {
+  await requireAdmin();
+
+  const email = formData.get("email") as string;
+  const nome = formData.get("nome") as string;
+
+  if (!email || !nome) {
+    throw new Error("E-mail e nome são obrigatórios");
+  }
+
+  await prisma.configEmailRelatorio.create({
+    data: { email: email.trim().toLowerCase(), nome: nome.trim() },
+  });
+
+  await registrarAtividade({
+    acao: "criar",
+    entidade: "email_relatorio",
+    descricao: `Adicionou e-mail "${email}" (${nome}) à lista de relatórios`,
+  });
+
+  revalidatePath("/admin/emails-relatorio");
+}
+
+export async function removerEmailRelatorio(id: number) {
+  await requireAdmin();
+
+  const registro = await prisma.configEmailRelatorio.findUnique({ where: { id } });
+  await prisma.configEmailRelatorio.delete({ where: { id } });
+
+  await registrarAtividade({
+    acao: "excluir",
+    entidade: "email_relatorio",
+    entidadeId: id,
+    descricao: `Removeu e-mail "${registro?.email}" da lista de relatórios`,
+  });
+
+  revalidatePath("/admin/emails-relatorio");
+}
+
+export async function toggleEmailRelatorio(id: number) {
+  await requireAdmin();
+
+  const registro = await prisma.configEmailRelatorio.findUnique({ where: { id } });
+  if (!registro) throw new Error("E-mail não encontrado");
+
+  await prisma.configEmailRelatorio.update({
+    where: { id },
+    data: { ativo: !registro.ativo },
+  });
+
+  await registrarAtividade({
+    acao: "editar",
+    entidade: "email_relatorio",
+    entidadeId: id,
+    descricao: `${registro.ativo ? "Desativou" : "Ativou"} e-mail "${registro.email}" na lista de relatórios`,
+  });
+
+  revalidatePath("/admin/emails-relatorio");
+}
