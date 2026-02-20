@@ -123,6 +123,32 @@ async function getProducaoData() {
   const producaoSemanaTotal = producaoSemana.reduce((acc, p) => acc + p.quantidade_dia, 0);
   const producaoMesTotal = producaoMes.reduce((acc, p) => acc + p.quantidade_dia, 0);
 
+  // Fallback: when producao table is empty, estimate from quantidade_produzida
+  const hasProducaoLogs = producaoHojeTotal > 0 || producaoSemanaTotal > 0 || producaoMesTotal > 0;
+  let estimatedDaily = 0;
+  let estimatedWeekly = 0;
+  let estimatedMonthly = 0;
+
+  if (!hasProducaoLogs) {
+    const totalProduzido = referencias.reduce((acc, r) => acc + (r.quantidade_produzida || 0), 0);
+    const totalPrevisto = referencias.reduce((acc, r) => acc + (r.previsao_producao || 0), 0);
+
+    // Estimate based on collection timeline
+    const colDates = colecoes.flatMap((c) => [
+      new Date(c.created_at).getTime(),
+    ]);
+    const earliestStart = colDates.length > 0 ? Math.min(...colDates) : now.getTime();
+    const diasTrabalhados = Math.max(1, Math.ceil((now.getTime() - earliestStart) / 86400000));
+
+    estimatedDaily = Math.round(totalProduzido / diasTrabalhados);
+    estimatedWeekly = estimatedDaily * 6;
+    estimatedMonthly = estimatedDaily * 26;
+  }
+
+  const finalProducaoHoje = hasProducaoLogs ? producaoHojeTotal : estimatedDaily;
+  const finalProducaoSemana = hasProducaoLogs ? producaoSemanaTotal : estimatedWeekly;
+  const finalProducaoMes = hasProducaoLogs ? producaoMesTotal : estimatedMonthly;
+
   // Progresso por coleção
   const progressoColecoes = colecoes.map((c) => {
     const totalProd = c.referencias.reduce((acc, r) => acc + (r.quantidade_produzida || 0), 0);
@@ -167,12 +193,13 @@ async function getProducaoData() {
       refAguardando,
     },
     metas: {
-      producaoHoje: producaoHojeTotal,
+      producaoHoje: finalProducaoHoje,
       metaDiaria,
-      producaoSemana: producaoSemanaTotal,
+      producaoSemana: finalProducaoSemana,
       metaSemanal,
-      producaoMes: producaoMesTotal,
+      producaoMes: finalProducaoMes,
       metaMensal,
+      isEstimated: !hasProducaoLogs,
     },
     progressoColecoes,
     ultimasAtualizacoes,
@@ -433,13 +460,20 @@ export default async function ProducaoPage() {
       {/* Metas de Produção */}
       <div className="bg-white rounded-xl border border-gray-100 shadow-sm">
         <div className="px-6 py-4 border-b border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900">Metas de Produção</h3>
+          <h3 className="text-lg font-semibold text-gray-900">
+            Metas de Produção
+            {metas.isEstimated && (
+              <span className="ml-2 text-xs font-normal text-amber-500">(média estimada)</span>
+            )}
+          </h3>
         </div>
         <div className="p-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Meta Diária */}
             <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
-              <p className="text-sm text-gray-500 mb-3">Meta Diária</p>
+              <p className="text-sm text-gray-500 mb-3">
+                {metas.isEstimated ? "Média Diária" : "Meta Diária"}
+              </p>
               <div className="flex items-baseline justify-between mb-3">
                 <span className="text-3xl font-bold text-gray-900">
                   {metas.producaoHoje.toLocaleString("pt-BR")}
@@ -462,7 +496,9 @@ export default async function ProducaoPage() {
 
             {/* Meta Semanal */}
             <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
-              <p className="text-sm text-gray-500 mb-3">Meta Semanal</p>
+              <p className="text-sm text-gray-500 mb-3">
+                {metas.isEstimated ? "Média Semanal" : "Meta Semanal"}
+              </p>
               <div className="flex items-baseline justify-between mb-3">
                 <span className="text-3xl font-bold text-gray-900">
                   {metas.producaoSemana.toLocaleString("pt-BR")}
@@ -485,7 +521,9 @@ export default async function ProducaoPage() {
 
             {/* Meta Mensal */}
             <div className="bg-gray-50 rounded-xl p-5 border border-gray-100">
-              <p className="text-sm text-gray-500 mb-3">Meta Mensal</p>
+              <p className="text-sm text-gray-500 mb-3">
+                {metas.isEstimated ? "Média Mensal" : "Meta Mensal"}
+              </p>
               <div className="flex items-baseline justify-between mb-3">
                 <span className="text-3xl font-bold text-gray-900">
                   {metas.producaoMes.toLocaleString("pt-BR")}
@@ -580,10 +618,10 @@ export default async function ProducaoPage() {
                           {ref.diasRestantes !== null ? (
                             <span
                               className={`px-2.5 py-1 rounded-full text-xs font-medium ${ref.diasRestantes <= 0
-                                  ? "bg-red-100 text-red-700"
-                                  : ref.diasRestantes <= 7
-                                    ? "bg-amber-100 text-amber-700"
-                                    : "bg-blue-100 text-blue-700"
+                                ? "bg-red-100 text-red-700"
+                                : ref.diasRestantes <= 7
+                                  ? "bg-amber-100 text-amber-700"
+                                  : "bg-blue-100 text-blue-700"
                                 }`}
                             >
                               {ref.diasRestantes <= 0
