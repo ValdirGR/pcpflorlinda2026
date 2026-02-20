@@ -1,6 +1,6 @@
 # API & Server Actions — PCP Flor Linda
 
-> **Última atualização:** 10/02/2026  
+> **Última atualização:** 20/02/2026  
 
 ---
 
@@ -8,11 +8,13 @@
 
 O PCP Flor Linda **não usa API REST tradicional**. As mutações são feitas via **Server Actions** (Next.js) e as leituras são feitas diretamente nas páginas (React Server Components).
 
-A única rota API é a do NextAuth para autenticação.
+As únicas rotas API são:
+- NextAuth para autenticação
+- Upload de fotos via Supabase Storage
 
 ---
 
-## 2. Rota API
+## 2. Rotas API
 
 ### `GET/POST /api/auth/[...nextauth]`
 
@@ -31,11 +33,33 @@ export { GET, POST } from "@/auth";
 
 ---
 
+### `POST /api/upload-foto`
+
+Upload de foto de referência para o Supabase Storage.
+
+**Request:**
+- `Content-Type: multipart/form-data`
+- Campo `file`: arquivo de imagem (JPG, PNG, WebP — máx. 350KB)
+
+**Response (sucesso):**
+```json
+{ "url": "https://xxx.supabase.co/storage/v1/object/public/referencias/foto.jpg" }
+```
+
+**Response (erro):**
+```json
+{ "error": "mensagem de erro" }
+```
+
+**Arquivo:** `src/app/api/upload-foto/route.ts`
+
+O handler usa `SUPABASE_SERVICE_ROLE_KEY` (server-only) para fazer o upload no bucket `referencias`.
+
+---
+
 ## 3. Server Actions
 
-Todas definidas em `src/app/actions.ts` com `"use server"`.
-
-### 3.1 Coleções
+### 3.1 Coleções — `src/app/actions.ts`
 
 #### `criarColecao(formData: FormData)`
 
@@ -55,6 +79,7 @@ Cria uma nova coleção no banco.
 | `status_estilo` | string | ❌ | Status do estilo |
 
 **Efeitos:**
+- `registrarAtividade()` — grava log de auditoria
 - `revalidatePath("/colecoes")`, `revalidatePath("/dashboard")`
 - `redirect("/colecoes")`
 
@@ -65,6 +90,7 @@ Cria uma nova coleção no banco.
 Atualiza uma coleção existente. Mesmos campos do `criarColecao`.
 
 **Efeitos:**
+- `registrarAtividade()`
 - `revalidatePath("/colecoes")`, `revalidatePath("/colecoes/{id}")`, `revalidatePath("/dashboard")`
 - `redirect("/colecoes/{id}")`
 
@@ -77,13 +103,16 @@ Exclui uma coleção e **todos os dados relacionados** em cascata:
 2. Exclui todas as referências da coleção
 3. Exclui a coleção
 
+**Permissão:** Admin only.
+
 **Efeitos:**
+- `registrarAtividade()` (com número de referências excluídas em `detalhes`)
 - `revalidatePath("/colecoes")`, `revalidatePath("/dashboard")`
 - `redirect("/colecoes")`
 
 ---
 
-### 3.2 Referências
+### 3.2 Referências — `src/app/actions.ts`
 
 #### `criarReferencia(formData: FormData)`
 
@@ -95,6 +124,7 @@ Exclui uma coleção e **todos os dados relacionados** em cascata:
 | `tempo_producao` | string (int) | ✅ | Tempo de produção (min) |
 | `previsao_producao` | string (int) | ✅ | Previsão em peças |
 | `producao_diaria_pessoa` | string (int) | ✅ | Produção diária/pessoa |
+| `foto` | string (URL) | ❌ | URL pública da foto (Supabase ou Hostinger) |
 | `data_distribuicao` | string (date) | ❌ | Data de distribuição |
 | `media_dias_entrega` | string (int) | ❌ | Média dias entrega |
 | `localizacao_estoque` | string | ❌ | Local no estoque |
@@ -105,6 +135,7 @@ Exclui uma coleção e **todos os dados relacionados** em cascata:
 **Status possíveis:** `normal` \| `finalizada` \| `arquivada` \| `atraso_desenvolvimento` \| `atraso_logistica` \| `em_producao`
 
 **Efeitos:**
+- `registrarAtividade()`
 - `revalidatePath("/referencias")`, `revalidatePath("/dashboard")`
 - `redirect("/referencias")`
 
@@ -115,6 +146,7 @@ Exclui uma coleção e **todos os dados relacionados** em cascata:
 Mesmos campos do `criarReferencia`.
 
 **Efeitos:**
+- `registrarAtividade()`
 - `revalidatePath("/referencias")`, `revalidatePath("/referencias/{id}")`, `revalidatePath("/dashboard")`
 - `redirect("/referencias/{id}")`
 
@@ -124,21 +156,40 @@ Mesmos campos do `criarReferencia`.
 
 Atualiza apenas o status de uma referência.
 
-**Retorna:** `{ success: true }`
-
-
-#### `excluirReferencia(id: number)`
-
-Exclui uma referência **apenas se não houver etapas cadastradas**. Caso contrário, lança um erro.
-
 **Efeitos:**
+- `registrarAtividade()` com novo status
 - `revalidatePath("/referencias")`, `revalidatePath("/dashboard")`
-- Retorna `{ success: true }` ou lança exceção.
+- **Retorna:** `{ success: true }`
 
 ---
 
+#### `excluirReferencia(id: number)`
 
-### 3.3 Produção
+Exclui uma referência **apenas se não houver etapas cadastradas**.
+
+**Permissão:** `editor` ou `admin`.
+
+**Validação:**
+1. Conta etapas — se `etapasCount > 0` → lança `Error`
+2. Exclui registros de produção (se houver)
+3. Exclui a referência
+
+**Efeitos:**
+- `registrarAtividade()`
+- `revalidatePath("/referencias")`, `revalidatePath("/dashboard")`
+- **Retorna:** `{ success: true }` ou lança exceção.
+
+---
+
+#### `listarColecoesParaSeletor()`
+
+Retorna coleções ativas (status ≠ `desabilitada`) para uso em selects de formulário.
+
+**Retorna:** `Array<{ id, nome, codigo }>`
+
+---
+
+### 3.3 Produção — `src/app/actions.ts`
 
 #### `criarProducao(formData: FormData)`
 
@@ -152,12 +203,13 @@ Exclui uma referência **apenas se não houver etapas cadastradas**. Caso contr�
 
 **Efeitos adicionais:**
 - Incrementa `quantidade_produzida` na referência: `prisma.referencia.update({ quantidade_produzida: { increment: quantidade_dia } })`
+- `registrarAtividade()`
 - `revalidatePath("/producao")`, `revalidatePath("/referencias")`, `revalidatePath("/dashboard")`
 - `redirect("/producao")`
 
 ---
 
-### 3.4 Etapas de Produção
+### 3.4 Etapas de Produção — `src/app/actions.ts`
 
 #### `adicionarEtapa(formData: FormData)`
 
@@ -171,6 +223,7 @@ Exclui uma referência **apenas se não houver etapas cadastradas**. Caso contr�
 | `observacoes` | string | ❌ | Observações |
 
 **Efeitos:**
+- `registrarAtividade()`
 - `revalidatePath("/referencias/{referencia_id}")`, `revalidatePath("/dashboard")`
 - `redirect("/referencias/{referencia_id}")`
 
@@ -181,14 +234,36 @@ Exclui uma referência **apenas se não houver etapas cadastradas**. Caso contr�
 | Campo FormData | Tipo | Obrigatório | Descrição |
 |----------------|------|-------------|-----------|
 | `referencia_id` | string (int) | ✅ | ID da referência (para redirect) |
+| `nome` | string | ✅ | Nome da etapa |
 | `status` | string (enum) | ✅ | Novo status |
 | `data_inicio` | string (date) | ❌ | Data de início |
 | `data_fim` | string (date) | ❌ | Data de fim |
 | `observacoes` | string | ❌ | Observações |
 
 **Efeitos:**
+- `registrarAtividade()`
 - `revalidatePath("/referencias/{referencia_id}")`, `revalidatePath("/dashboard")`
 - `redirect("/referencias/{referencia_id}")`
+
+---
+
+#### `excluirEtapa(id: number, referencia_id: number)`
+
+Exclui uma etapa de produção.
+
+**Efeitos:**
+- `registrarAtividade()`
+- `revalidatePath("/referencias/{referencia_id}")`, `revalidatePath("/dashboard")`
+
+---
+
+### 3.5 Área Admin — `src/app/admin-actions.ts`
+
+Actions disponíveis na área administrativa (requerem `nivel === "admin"`):
+
+- Criar/editar/desativar usuários
+- Salvar configurações do sistema
+- Gerenciar lista de e-mails para relatório diário
 
 ---
 
@@ -257,6 +332,15 @@ prisma.producao.findMany({ where: data = mês })
 prisma.producao.findMany({ take: 10, include: referencia })
 ```
 
+### `/admin` — `src/app/admin-queries.ts`
+
+```typescript
+// Estatísticas admin via obterEstatisticasAdmin():
+prisma.usuario.count()
+prisma.usuario.findMany({ take: 5, orderBy: created_at desc })
+// + demais métricas do sistema
+```
+
 ---
 
 ## 5. Utilitários (`src/lib/utils.ts`)
@@ -290,7 +374,23 @@ prisma.producao.findMany({ take: 10, include: referencia })
 
 ---
 
-## 6. Prisma Client (`src/lib/prisma.ts`)
+## 6. Log de Atividades (`src/lib/log-atividade.ts`)
+
+Utilitário chamado automaticamente em todas as Server Actions.
+
+```typescript
+registrarAtividade({
+  acao: "criar" | "editar" | "excluir" | "alterar_status",
+  entidade: "colecao" | "referencia" | "etapa" | "producao" | "usuario",
+  entidadeId: number,
+  descricao: string,       // label legível
+  detalhes?: string,       // informações extras (opcional)
+})
+```
+
+---
+
+## 7. Prisma Client (`src/lib/prisma.ts`)
 
 Singleton pattern para evitar múltiplas conexões em desenvolvimento:
 
@@ -313,3 +413,20 @@ export default prisma;
 ```
 
 **Importante:** Em desenvolvimento, o Hot Module Reload cria novas instâncias de `PrismaClient`. O singleton armazena a instância em `globalThis` para reutilizar.
+
+---
+
+## 8. Cliente Supabase (`src/lib/supabase.ts`)
+
+Usado exclusivamente para operações de **Storage** (fotos de referências):
+
+```typescript
+import { createClient } from "@supabase/supabase-js";
+
+export const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY! // server-only
+);
+```
+
+**Bucket:** `referencias` (público, sem autenticação para leitura)
