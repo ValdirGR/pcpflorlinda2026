@@ -57,6 +57,7 @@ export default async function ReferenciasPage({ searchParams }: PageProps) {
       ),
       etapas_ativas: r.etapas.filter((e) => e.status !== "concluida").length,
       etapaInfo,
+      nivelAcesso: nivel,
     };
   });
 
@@ -106,7 +107,7 @@ export default async function ReferenciasPage({ searchParams }: PageProps) {
                 <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   Etapas
                 </th>
-                <th className="text-right px-6 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <th className="sticky right-0 bg-gray-50/80 text-right px-3 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                   Ações
                 </th>
               </tr>
@@ -120,7 +121,7 @@ export default async function ReferenciasPage({ searchParams }: PageProps) {
                 return (
                   <tr
                     key={ref.id}
-                    className="hover:bg-gray-50/50 transition-colors"
+                    className="group hover:bg-gray-50/50 transition-colors"
                   >
                     <td className="px-6 py-4">
                       <span className="font-mono text-sm font-medium text-pink-600">
@@ -185,11 +186,11 @@ export default async function ReferenciasPage({ searchParams }: PageProps) {
                         <span className="text-xs text-gray-300">—</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
+                    <td className="sticky right-0 bg-white group-hover:bg-gray-50/50 px-3 py-4 text-right whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-0">
                         <Link
                           href={`/referencias/${ref.id}`}
-                          className="p-2 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-md transition-colors"
                           title="Detalhes"
                         >
                           <Eye className="h-4 w-4" />
@@ -197,7 +198,7 @@ export default async function ReferenciasPage({ searchParams }: PageProps) {
                         {nivel !== "visualizador" && (
                           <Link
                             href={`/referencias/${ref.id}/editar`}
-                            className="p-2 text-gray-400 hover:text-pink-500 hover:bg-pink-50 rounded-lg transition-colors"
+                            className="p-1.5 text-gray-400 hover:text-pink-500 hover:bg-pink-50 rounded-md transition-colors"
                             title="Editar"
                           >
                             <Pencil className="h-4 w-4" />
@@ -206,6 +207,7 @@ export default async function ReferenciasPage({ searchParams }: PageProps) {
                         {nivel !== "visualizador" && (
                           <DeleteReferenciaButton
                             id={ref.id}
+                            codigo={ref.codigo}
                             nome={ref.nome}
                             temEtapas={ref.etapas.length > 0}
                           />
@@ -229,6 +231,6 @@ export default async function ReferenciasPage({ searchParams }: PageProps) {
           {refData.length} referência(s)
         </div>
       </div>
-    </div>
+    </div >
   );
 }
