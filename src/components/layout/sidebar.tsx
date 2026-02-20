@@ -28,10 +28,15 @@ const navigation = [
   { name: "Relatórios", href: "/relatorios", icon: BarChart3 },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({
+  collapsed,
+  onCollapsedChange,
+}: {
+  collapsed: boolean;
+  onCollapsedChange: (collapsed: boolean) => void;
+}) {
   const pathname = usePathname();
   const { data: session } = useSession();
-  const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
@@ -74,7 +79,7 @@ export default function Sidebar() {
 
           {/* Collapse toggle (desktop) */}
           <button
-            onClick={() => setCollapsed(!collapsed)}
+            onClick={() => onCollapsedChange(!collapsed)}
             className="hidden lg:flex items-center justify-center h-7 w-7 rounded-md hover:bg-slate-700/50 transition-colors"
           >
             <ChevronLeft

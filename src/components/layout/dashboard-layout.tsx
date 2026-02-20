@@ -13,6 +13,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const { data: session, status } = useSession();
+  const [collapsed, setCollapsed] = useState(false);
 
   if (status === "loading") {
     return (
@@ -31,11 +32,12 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Sidebar />
-      <div className="lg:pl-64 transition-all duration-300">
+      <Sidebar collapsed={collapsed} onCollapsedChange={setCollapsed} />
+      <div className={cn("transition-all duration-300", collapsed ? "lg:pl-[72px]" : "lg:pl-64")}>
         <Header />
         <main className="p-4 lg:p-8">{children}</main>
       </div>
     </div>
   );
 }
+
