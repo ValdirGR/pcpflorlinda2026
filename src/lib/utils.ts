@@ -8,13 +8,13 @@ export function cn(...inputs: ClassValue[]) {
 export function formatDate(date: Date | string | null): string {
   if (!date) return "—";
   const d = new Date(date);
-  return d.toLocaleDateString("pt-BR");
+  return d.toLocaleDateString("pt-BR", { timeZone: "America/Sao_Paulo" });
 }
 
 export function formatDateTime(date: Date | string | null): string {
   if (!date) return "—";
   const d = new Date(date);
-  return d.toLocaleString("pt-BR");
+  return d.toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
 }
 
 export function calcPercentage(produced: number, total: number): number {
