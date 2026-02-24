@@ -1,6 +1,6 @@
 # API & Server Actions — PCP Flor Linda
 
-> **Última atualização:** 20/02/2026  
+> **Última atualização:** 24/02/2026  
 
 ---
 
@@ -11,6 +11,7 @@ O PCP Flor Linda **não usa API REST tradicional**. As mutações são feitas vi
 As únicas rotas API são:
 - NextAuth para autenticação
 - Upload de fotos via Supabase Storage
+- Cron de relatório diário (protegido por `CRON_SECRET`)
 
 ---
 
@@ -30,6 +31,40 @@ Handler do NextAuth v5. Gerencia:
 export { GET, POST } from "@/auth";
 // Exporta handlers de src/auth.ts (NextAuth v5)
 ```
+
+---
+
+### `GET|POST /api/cron/relatorio-diario`
+
+Gera e envia o relatório gerencial diário em PDF por e-mail para todos os destinatários ativos cadastrados.
+
+**Autenticação:**
+- `GET ?secret=CRON_SECRET` — útil para testes manuais
+- `POST Authorization: Bearer CRON_SECRET` — usado pelo Supabase pg_cron
+
+**Resposta (sucesso):**
+```json
+{ "ok": true, "enviados": 3, "erros": 0, "destinatarios": ["...emails..."] }
+```
+
+**Resposta (sem destinatários):**
+```json
+{ "ok": true, "message": "Nenhum destinatário ativo" }
+```
+
+**Arquivo:** `src/app/api/cron/relatorio-diario/route.ts`
+
+**Agendamento sugerido (Supabase pg_cron):**
+```sql
+SELECT cron.schedule('relatorio-gerencial-diario', '0 10 * * 1-5',
+  $$ SELECT net.http_post(
+    url := 'https://pcpflorlinda.vercel.app/api/cron/relatorio-diario',
+    headers := jsonb_build_object('Authorization','Bearer SEU_CRON_SECRET'),
+    body := '{}'::jsonb
+  ); $$
+);
+```
+> Seg–Sex às 07h BRT (10h UTC)
 
 ---
 
@@ -165,19 +200,22 @@ Atualiza apenas o status de uma referência.
 
 #### `excluirReferencia(id: number)`
 
-Exclui uma referência **apenas se não houver etapas cadastradas**.
+Exclui uma referência e **todos os dados relacionados** em cascata.
 
-**Permissão:** `editor` ou `admin`.
+**Permissão:** `usuario` ou `admin` (visualizador não vê o botão).
 
-**Validação:**
-1. Conta etapas — se `etapasCount > 0` → lança `Error`
-2. Exclui registros de produção (se houver)
-3. Exclui a referência
+**Cascade:**
+1. Remove a foto do **Supabase Storage** (se a URL pertencer ao bucket `referencias-fotos`)
+2. Exclui todas as `etapas_producao` da referência
+3. Exclui todos os registros de `producao` da referência
+4. Exclui a referência
+
+**Validação UI:** Dupla confirmação via `ConfirmDialog` (dois dialogs sequenciais com mensagens de alerta progressivas).
 
 **Efeitos:**
 - `registrarAtividade()`
-- `revalidatePath("/referencias")`, `revalidatePath("/dashboard")`
-- **Retorna:** `{ success: true }` ou lança exceção.
+- `revalidatePath("/referencias")`, `revalidatePath("/colecoes/{colecao_id}")`, `revalidatePath("/dashboard")`
+- **Retorna:** `{ success: true }`
 
 ---
 
@@ -350,8 +388,8 @@ prisma.usuario.findMany({ take: 5, orderBy: created_at desc })
 | Função | Assinatura | Descrição |
 |--------|-----------|-----------|
 | `cn` | `(...inputs: ClassValue[]) => string` | Merge de classes Tailwind |
-| `formatDate` | `(date: Date \| string \| null) => string` | Formata data para pt-BR |
-| `formatDateTime` | `(date: Date \| string \| null) => string` | Formata data+hora pt-BR |
+| `formatDate` | `(date: Date \| string \| null) => string` | Formata data pt-BR (`America/Sao_Paulo`) |
+| `formatDateTime` | `(date: Date \| string \| null) => string` | Formata data+hora pt-BR (`America/Sao_Paulo`) |
 | `calcPercentage` | `(produced: number, total: number) => number` | Calcula % (max 100) |
 | `getStatusColor` | `(status: string) => string` | Retorna classes CSS do badge |
 | `getStatusLabel` | `(status: string) => string` | Retorna label legível |
@@ -376,17 +414,21 @@ prisma.usuario.findMany({ take: 5, orderBy: created_at desc })
 
 ## 6. Log de Atividades (`src/lib/log-atividade.ts`)
 
-Utilitário chamado automaticamente em todas as Server Actions.
+Utilitário chamado automaticamente em todas as Server Actions e em eventos de autenticação.
 
 ```typescript
 registrarAtividade({
-  acao: "criar" | "editar" | "excluir" | "alterar_status",
-  entidade: "colecao" | "referencia" | "etapa" | "producao" | "usuario",
-  entidadeId: number,
+  acao: "criar" | "editar" | "excluir" | "login" | "logout" | "alterar_status" | "alterar_senha",
+  entidade: "colecao" | "referencia" | "etapa" | "producao" | "usuario" | "sistema" | "email_relatorio",
+  entidadeId?: number,
   descricao: string,       // label legível
   detalhes?: string,       // informações extras (opcional)
 })
 ```
+
+**Eventos de autenticação** são registrados diretamente via callbacks `events` do NextAuth em `src/auth.ts` (sem risco de loop):
+- `events.signIn` → grava login com IP via `x-forwarded-for`
+- `events.signOut` → grava logout com nome do usuário extraído do JWT
 
 ---
 

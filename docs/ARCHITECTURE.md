@@ -1,7 +1,7 @@
 # Arquitetura — PCP Flor Linda (Next.js)
 
-> **Versão:** 3.0  
-> **Última atualização:** 20/02/2026  
+> **Versão:** 3.1  
+> **Última atualização:** 24/02/2026  
 
 ---
 
@@ -159,6 +159,8 @@ pcp-flor-linda/
 │       ├── prisma.ts              # Instância singleton do Prisma
 │       ├── supabase.ts            # Cliente Supabase (Storage)
 │       ├── log-atividade.ts       # Utilitário de log de atividades
+│       ├── relatorio-pdf.ts       # Gerador de PDF gerencial (jsPDF + autoTable)
+│       ├── relatorio-email.ts     # Envio do relatório por e-mail (Resend)
 │       └── utils.ts               # Utilitários (formatDate, status, etc.)
 │
 ├── next.config.ts                 # Config Next.js (images)
@@ -195,13 +197,16 @@ Após a mutação:
 
 ```
 Requisição → middleware.ts → auth() → Verifica JWT
-                                        ├── Válido → Continua para a página
-                                        └── Inválido → Redirect /login
+                                        ├── Válido (< 8h) → Continua para a página
+                                        └── Inválido/Expirado → Redirect /login
 ```
 
 - **NextAuth v5** com provider `CredentialsProvider`
 - Estratégia: JWT (sem sessão no banco)
 - O JWT contém: `id`, `email`, `name`, `nivel`
+- **`session.maxAge: 8 * 60 * 60`** — sessões expiram automaticamente após 8 horas
+- **`events.signIn`** — grava log de login no MySQL com IP (`x-forwarded-for`)
+- **`events.signOut`** — grava log de logout com nome do usuário do JWT
 - Middleware aplica em todas as rotas exceto: `/login`, `/api/auth/*`, `/_next/*`
 - Rotas `/admin/*` verificam `nivel === "admin"` via `AdminGuard`
 
@@ -213,15 +218,27 @@ Requisição → middleware.ts → auth() → Verifica JWT
 
 ### 3.5 Imagens (Supabase Storage)
 
-- Fotos de referências são armazenadas no **Supabase Storage** (bucket `referencias`)
+- Fotos de referências são armazenadas no **Supabase Storage** (bucket `referencias-fotos`)
 - Upload via API Route: `POST /api/upload-foto` → retorna URL pública
 - A URL pública é salva no campo `foto` da tabela `referencia` (MySQL)
 - Fotos legadas do PHP continuam sendo exibidas via URL direta (`florlinda.store`)
 - Suporte a limite de 350KB por arquivo no upload
+- **Ao excluir uma referência**, a foto é removida do bucket automaticamente via `supabase.storage.remove()`
 
 ### 3.6 Log de Atividades
 
-Todas as ações de criação, edição e exclusão são registradas automaticamente via `registrarAtividade()` (em `src/lib/log-atividade.ts`). O log é visível na área de administração em `/admin/logs`.
+Todas as ações de CRUD (criar, editar, excluir, alterar status) e eventos de autenticação (login/logout) são registrados automaticamente. Os logs são visíveis na área de administração em `/admin/logs` com filtros por entidade, ação e usuário.
+
+### 3.7 Timezone
+
+O servidor Vercel opera em UTC. Todos os horários são armazenados em UTC no MySQL e convertidos para `America/Sao_Paulo` no momento da exibição via `{ timeZone: "America/Sao_Paulo" }` nas funções `formatDate` e `formatDateTime`.
+
+### 3.8 Relatório Diário Automático
+
+- **PDF**: gerado em memória com `jsPDF + autoTable` (sem disco)
+- **E-mail**: enviado via **Resend** com o PDF como anexo para destinatários ativos da tabela `config_emails_relatorio`
+- **Agendamento**: Supabase `pg_cron` + `pg_net` dispara `POST /api/cron/relatorio-diario` de seg a sex às 07h BRT
+- **Proteção**: rota exige `Authorization: Bearer CRON_SECRET` (POST) ou `?secret=CRON_SECRET` (GET para teste)
 
 ---
 
@@ -304,6 +321,8 @@ Browser → <input type="file"> → POST /api/upload-foto
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Chave anon pública do Supabase | `eyJ...` |
 | `SUPABASE_SERVICE_ROLE_KEY` | Chave service role (server only) | `eyJ...` |
 | `RESEND_API_KEY` | Chave da API Resend (e-mails) | `re_...` |
+| `RESEND_FROM_EMAIL` | E-mail remetente verificado no Resend | `relatorios@seudominio.com` |
+| `CRON_SECRET` | Segredo para autenticar o endpoint do cron | `string aleatória` |
 
 ---
 
@@ -316,23 +335,25 @@ O sistema prioriza dados reais da tabela `Producao`. Se não houver registros di
 - Exibe o termo "(média estimada)" nos cards do dashboard.
 
 ### 8.2 Exclusão de Referências
-Para garantir integridade:
-- **Não é permitido** excluir referências que possuam etapas cadastradas.
-- O botão de exclusão na interface permanece visível mas desabilitado (cinza) nesses casos.
-- A Server Action `excluirReferencia` valida novamente essa regra no servidor antes de executar.
-- **Permissão:** Usuários com nível `"editor"` ou superior podem excluir (respeitando a regra acima).
+A exclusão de uma referência é uma operação em cascata:
+1. Foto removida do Supabase Storage
+2. Todas as `etapas_producao` excluídas
+3. Todos os registros de `producao` excluídos
+4. Referência excluída do banco
+
+A UI exige dupla confirmação (dois dialogs sequenciais). **Permissão:** nível `usuario` ou `admin`.
 
 ### 8.3 Log de Auditoria
-Toda ação de CRUD (criar, editar, excluir, alterar status) é automaticamente registrada com:
-- Usuário responsável
-- Entidade afetada (`colecao`, `referencia`, `etapa`, `producao`)
-- Descrição legível da ação
-- Timestamp
+Toda ação de CRUD e eventos de autenticação são automaticamente registrados com:
+- Usuário responsável (id + nome)
+- Entidade afetada (`colecao`, `referencia`, `etapa`, `producao`, `usuario`, `sistema`, `email_relatorio`)
+- Ação (`criar`, `editar`, `excluir`, `login`, `logout`, `alterar_status`, `alterar_senha`)
+- Descrição legível + timestamp em `America/Sao_Paulo`
 
 ### 8.4 Área Administrativa
 Acessível apenas para usuários com `nivel === "admin"`. Gerencia:
 - Usuários (criar, editar, ativar/desativar)
 - Configurações do sistema
-- Log de atividades
-- E-mails para relatório diário
+- Log de atividades (com filtros)
+- E-mails para relatório diário (CRUD)
 

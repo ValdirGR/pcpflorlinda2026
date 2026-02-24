@@ -1,6 +1,6 @@
 # Database Schema — PCP Flor Linda
 
-> **Última atualização:** 10/02/2026  
+> **Última atualização:** 24/02/2026  
 > **Motor:** MySQL 8.x (Hostinger)  
 > **Host:** srv796.hstgr.io  
 > **Banco:** u333025608_painel_pcp  
@@ -47,18 +47,19 @@
                        │ updated_at       │
                        └──────────────────┘
 
-┌──────────────┐
-│   usuarios   │
-│──────────────│
-│ id (PK)      │
-│ nome         │
-│ email (UQ)   │
-│ senha        │
-│ nivel (ENUM) │
-│ ativo        │
-│ created_at   │
-│ updated_at   │
-└──────────────┘
+┌──────────────┐  ┌────────────────────────┐  ┌──────────────────────┐
+│   usuarios   │  │   log_atividades       │  │ config_emails_rel.   │
+│──────────────│  │────────────────────────│  │──────────────────────│
+│ id (PK)      │  │ id (PK)                │  │ id (PK)              │
+│ nome         │  │ usuario_id (opcional)  │  │ email                │
+│ email (UQ)   │  │ usuario_nome           │  │ nome                 │
+│ senha        │  │ acao (VARCHAR)         │  │ ativo                │
+│ nivel (ENUM) │  │ entidade (VARCHAR)     │  │ created_at           │
+│ ativo        │  │ entidade_id (opcional) │  └──────────────────────┘
+│ created_at   │  │ descricao (TEXT)       │
+│ updated_at   │  │ ip (VARCHAR, opcional) │
+└──────────────┘  │ created_at             │
+                  └────────────────────────┘
 ```
 
 ---
@@ -197,6 +198,41 @@
 
 ---
 
+### 3.6 `log_atividades`
+
+Tabela de auditoria. Registra todas as ações de CRUD e eventos de autenticação (login/logout).
+
+| Coluna | Tipo | Null | Default | Descrição |
+|--------|------|------|---------|----------|
+| `id` | INT (PK) | NO | AUTO_INCREMENT | ID do registro |
+| `usuario_id` | INT | YES | NULL | ID do usuário (opcional) |
+| `usuario_nome` | VARCHAR(255) | NO | — | Nome do usuário |
+| `acao` | VARCHAR(50) | NO | — | Ação: `criar`, `editar`, `excluir`, `login`, `logout`, `alterar_status`, `alterar_senha` |
+| `entidade` | VARCHAR(50) | NO | — | Entidade: `colecao`, `referencia`, `etapa`, `producao`, `usuario`, `sistema`, `email_relatorio` |
+| `entidade_id` | INT | YES | NULL | ID da entidade afetada |
+| `descricao` | TEXT | NO | — | Descrição legível da ação |
+| `detalhes` | TEXT | YES | NULL | Informações adicionais (JSON-like) |
+| `ip` | VARCHAR(45) | YES | NULL | IP do usuário |
+| `created_at` | TIMESTAMP | NO | CURRENT_TIMESTAMP | Data/hora da ação |
+
+**Índices:** `usuario_id`, `entidade`, `created_at`
+
+---
+
+### 3.7 `config_emails_relatorio`
+
+Tabela de destinatários para o relatório gerencial diário enviado por e-mail.
+
+| Coluna | Tipo | Null | Default | Descrição |
+|--------|------|------|---------|----------|
+| `id` | INT (PK) | NO | AUTO_INCREMENT | ID do registro |
+| `email` | VARCHAR(255) | NO | — | Endereço de e-mail |
+| `nome` | VARCHAR(255) | NO | — | Nome do destinatário |
+| `ativo` | TINYINT(1) | NO | 1 | Se está ativo |
+| `created_at` | TIMESTAMP | NO | CURRENT_TIMESTAMP | Data de criação |
+
+---
+
 ## 4. Relacionamentos
 
 | De | Para | Tipo | Coluna FK |
@@ -204,6 +240,7 @@
 | `colecoes` | `referencias` | 1:N | `referencias.colecao_id` |
 | `referencias` | `etapas_producao` | 1:N | `etapas_producao.referencia_id` |
 | `referencias` | `producao` | 1:N | `producao.referencia_id` |
+> `log_atividades` e `config_emails_relatorio` não possuem FK no banco (`relationMode = "prisma"`).
 
 ---
 
