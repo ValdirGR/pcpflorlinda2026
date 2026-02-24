@@ -367,32 +367,43 @@ export async function listarColecoesParaSeletor() {
 }
 
 export async function excluirReferencia(id: number) {
-  const ref = await prisma.referencia.findUnique({ where: { id }, select: { nome: true, codigo: true } });
-  const etapasCount = await prisma.etapaProducao.count({
-    where: { referencia_id: id },
+  // Busca dados completos para log e remoção de foto
+  const ref = await prisma.referencia.findUnique({
+    where: { id },
+    select: { nome: true, codigo: true, foto: true, colecao_id: true },
   });
 
-  if (etapasCount > 0) {
-    throw new Error("Não é possível excluir referências que possuem etapas cadastradas.");
+  if (!ref) throw new Error("Referência não encontrada.");
+
+  // 1. Remove foto do Supabase Storage (se existir e for URL do Supabase)
+  if (ref.foto && ref.foto.includes("/storage/v1/object/public/")) {
+    const { supabase, BUCKET_NAME } = await import("@/lib/supabase");
+    const marker = `/object/public/${BUCKET_NAME}/`;
+    const idx = ref.foto.indexOf(marker);
+    if (idx !== -1) {
+      const filePath = ref.foto.slice(idx + marker.length);
+      await supabase.storage.from(BUCKET_NAME).remove([filePath]);
+    }
   }
 
-  // Se não tem etapas, deleta a produção (se houver, por consistência) e a referência
-  await prisma.producao.deleteMany({
-    where: { referencia_id: id },
-  });
+  // 2. Remove etapas de produção
+  await prisma.etapaProducao.deleteMany({ where: { referencia_id: id } });
 
-  await prisma.referencia.delete({
-    where: { id },
-  });
+  // 3. Remove registros de produção
+  await prisma.producao.deleteMany({ where: { referencia_id: id } });
+
+  // 4. Remove a referência
+  await prisma.referencia.delete({ where: { id } });
 
   await registrarAtividade({
     acao: "excluir",
     entidade: "referencia",
     entidadeId: id,
-    descricao: `Excluiu a referência "${ref?.nome}" (${ref?.codigo})`,
+    descricao: `Excluiu a referência "${ref.nome}" (${ref.codigo}) e todos os seus dados`,
   });
 
   revalidatePath("/referencias");
+  revalidatePath(`/colecoes/${ref.colecao_id}`);
   revalidatePath("/dashboard");
   return { success: true };
 }

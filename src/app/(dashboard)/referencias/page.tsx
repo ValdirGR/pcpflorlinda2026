@@ -209,7 +209,6 @@ export default async function ReferenciasPage({ searchParams }: PageProps) {
                             id={ref.id}
                             codigo={ref.codigo}
                             nome={ref.nome}
-                            temEtapas={ref.etapas.length > 0}
                           />
                         )}
                       </div>

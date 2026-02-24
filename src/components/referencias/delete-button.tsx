@@ -10,16 +10,13 @@ interface DeleteReferenciaButtonProps {
     id: number;
     codigo: string;
     nome: string;
-    temEtapas: boolean;
+    temEtapas?: boolean;
 }
 
 export function DeleteReferenciaButton({ id, codigo, nome, temEtapas }: DeleteReferenciaButtonProps) {
     const [isPending, startTransition] = useTransition();
     const [showFirst, setShowFirst] = useState(false);
     const [showSecond, setShowSecond] = useState(false);
-
-    // Só mostra o botão se NÃO tiver etapas cadastradas
-    if (temEtapas) return null;
 
     const handleFirstConfirm = () => {
         setShowFirst(false);
@@ -60,7 +57,7 @@ export function DeleteReferenciaButton({ id, codigo, nome, temEtapas }: DeleteRe
                 onClose={() => setShowFirst(false)}
                 onConfirm={handleFirstConfirm}
                 title="Excluir referência?"
-                message={`Deseja excluir a referência "${nome}" (código: ${codigo})? Esta ação não poderá ser desfeita.`}
+                message={`Deseja excluir a referência "${nome}" (código: ${codigo})? Esta ação removerá a referência e todos os seus dados.`}
                 confirmLabel="Sim, excluir"
                 cancelLabel="Cancelar"
                 variant="danger"
@@ -72,7 +69,7 @@ export function DeleteReferenciaButton({ id, codigo, nome, temEtapas }: DeleteRe
                 onClose={() => setShowSecond(false)}
                 onConfirm={handleSecondConfirm}
                 title="Confirmar exclusão definitiva"
-                message={`Tem certeza ABSOLUTA? A referência "${nome}" será removida permanentemente do sistema.`}
+                message={`Tem certeza ABSOLUTA? A referência "${nome}" (${codigo}) será removida permanentemente — incluindo todas as etapas, registros de produção e foto.`}
                 confirmLabel="Confirmar exclusão definitiva"
                 cancelLabel="Voltar"
                 variant="danger"
