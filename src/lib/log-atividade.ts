@@ -3,7 +3,7 @@
 import prisma from "@/lib/prisma";
 import { auth } from "@/auth";
 
-type Acao = "criar" | "editar" | "excluir" | "login" | "alterar_status" | "alterar_senha";
+type Acao = "criar" | "editar" | "excluir" | "login" | "logout" | "alterar_status" | "alterar_senha";
 type Entidade = "colecao" | "referencia" | "etapa" | "producao" | "usuario" | "sistema" | "email_relatorio";
 
 interface LogParams {
