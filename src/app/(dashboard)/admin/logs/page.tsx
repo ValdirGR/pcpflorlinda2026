@@ -15,6 +15,9 @@ import {
   Factory,
   Layers,
   Settings,
+  LogIn,
+  LogOut,
+  FileDown,
 } from "lucide-react";
 import { cn, formatDateTime } from "@/lib/utils";
 
@@ -35,7 +38,8 @@ const acaoConfig: Record<string, { label: string; icon: any; color: string }> = 
   excluir: { label: "Exclusão", icon: Trash2, color: "bg-red-100 text-red-700" },
   alterar_status: { label: "Status", icon: RefreshCw, color: "bg-yellow-100 text-yellow-700" },
   alterar_senha: { label: "Senha", icon: KeyRound, color: "bg-purple-100 text-purple-700" },
-  login: { label: "Login", icon: User, color: "bg-indigo-100 text-indigo-700" },
+  login: { label: "Login", icon: LogIn, color: "bg-indigo-100 text-indigo-700" },
+  logout: { label: "Logout", icon: LogOut, color: "bg-slate-100 text-slate-700" },
 };
 
 const entidadeConfig: Record<string, { label: string; icon: any; color: string }> = {
@@ -120,6 +124,7 @@ export default async function LogAtividadesPage({ searchParams }: PageProps) {
                 <option value="etapa">Etapa</option>
                 <option value="producao">Produção</option>
                 <option value="usuario">Usuário</option>
+                <option value="sistema">Sistema</option>
               </select>
             </div>
 
@@ -138,6 +143,8 @@ export default async function LogAtividadesPage({ searchParams }: PageProps) {
                 <option value="excluir">Exclusão</option>
                 <option value="alterar_status">Alteração de Status</option>
                 <option value="alterar_senha">Alteração de Senha</option>
+                <option value="login">Login</option>
+                <option value="logout">Logout</option>
               </select>
             </div>
 
@@ -167,6 +174,20 @@ export default async function LogAtividadesPage({ searchParams }: PageProps) {
               >
                 Limpar
               </Link>
+              <a
+                href={`/api/logs/pdf?${(() => {
+                  const q = new URLSearchParams();
+                  if (params.entidade) q.set("entidade", params.entidade);
+                  if (params.acao) q.set("acao", params.acao);
+                  if (params.usuario) q.set("usuario", params.usuario);
+                  return q.toString();
+                })()}`}
+                target="_blank"
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+              >
+                <FileDown className="h-4 w-4" />
+                PDF
+              </a>
             </div>
           </form>
         </div>
