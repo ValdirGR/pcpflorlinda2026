@@ -2,9 +2,24 @@
 
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState, Suspense } from "react";
-import { Loader2, Eye, EyeOff } from "lucide-react";
+import { useState, useCallback, Suspense } from "react";
+import { Loader2, Eye, EyeOff, RefreshCw } from "lucide-react";
 import Image from "next/image";
+
+function generateCaptcha() {
+  const a = Math.floor(Math.random() * 20) + 1;
+  const b = Math.floor(Math.random() * 15) + 1;
+  const ops = ["+", "-", "×"] as const;
+  const op = ops[Math.floor(Math.random() * ops.length)];
+  let answer: number;
+  switch (op) {
+    case "+": answer = a + b; break;
+    case "-": answer = a + b; return { text: `${a + b} − ${b}`, answer: a }; // garante resultado positivo
+    case "×": return { text: `${a > 10 ? a - 10 : a} × ${Math.min(b, 9)}`, answer: (a > 10 ? a - 10 : a) * Math.min(b, 9) };
+    default: answer = a + b;
+  }
+  return { text: `${a} + ${b}`, answer };
+}
 
 function LoginForm() {
   const router = useRouter();
@@ -14,11 +29,25 @@ function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [captcha, setCaptcha] = useState(() => generateCaptcha());
+  const [captchaInput, setCaptchaInput] = useState("");
+
+  const refreshCaptcha = useCallback(() => {
+    setCaptcha(generateCaptcha());
+    setCaptchaInput("");
+  }, []);
 
   const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (parseInt(captchaInput) !== captcha.answer) {
+      setError("Resposta do captcha incorreta");
+      refreshCaptcha();
+      return;
+    }
+
     setLoading(true);
     setError("");
 
@@ -123,6 +152,38 @@ function LoginForm() {
                   ) : (
                     <Eye className="h-5 w-5" />
                   )}
+                </button>
+              </div>
+            </div>
+
+            {/* Captcha */}
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                Verificação de segurança
+              </label>
+              <div className="flex items-center gap-3">
+                <div className="flex-1 flex items-center gap-2 px-4 py-3 bg-white/5 border border-white/10 rounded-lg">
+                  <span className="text-white font-mono text-lg tracking-wider select-none">
+                    {captcha.text} =
+                  </span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={captchaInput}
+                    onChange={(e) => setCaptchaInput(e.target.value.replace(/[^0-9-]/g, ""))}
+                    required
+                    placeholder="?"
+                    className="w-16 bg-transparent text-white text-lg font-mono text-center placeholder-slate-500 focus:outline-none border-b border-white/20 focus:border-pink-400 transition-colors"
+                    maxLength={4}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={refreshCaptcha}
+                  className="p-2.5 text-slate-400 hover:text-white bg-white/5 border border-white/10 rounded-lg hover:bg-white/10 transition-all"
+                  title="Gerar novo captcha"
+                >
+                  <RefreshCw className="h-5 w-5" />
                 </button>
               </div>
             </div>
