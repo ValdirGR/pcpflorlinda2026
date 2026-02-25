@@ -3,8 +3,18 @@ import { auth } from "@/auth";
 import prisma from "@/lib/prisma";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+
+function formatBR(date: Date, includeSeconds = false): string {
+  return date.toLocaleString("pt-BR", {
+    timeZone: "America/Sao_Paulo",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    ...(includeSeconds ? { second: "2-digit" } : {}),
+  });
+}
 
 const acaoLabels: Record<string, string> = {
   criar: "Criação",
@@ -52,7 +62,7 @@ export async function GET(request: NextRequest) {
   const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const now = new Date();
-  const dataHora = format(now, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+  const dataHora = formatBR(now);
 
   // ===== CABEÇALHO =====
   doc.setFillColor(124, 58, 237); // purple-600
@@ -80,7 +90,7 @@ export async function GET(request: NextRequest) {
 
   // ===== TABELA =====
   const tableData = logs.map((log) => [
-    format(new Date(log.created_at), "dd/MM/yyyy HH:mm:ss", { locale: ptBR }),
+    formatBR(new Date(log.created_at), true),
     log.usuario_nome,
     acaoLabels[log.acao] || log.acao,
     entidadeLabels[log.entidade] || log.entidade,
@@ -134,7 +144,9 @@ export async function GET(request: NextRequest) {
 
   const pdfBuffer = doc.output("arraybuffer");
 
-  const filename = `log-atividades-${format(now, "yyyy-MM-dd-HHmm")}.pdf`;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const brNow = new Date(now.toLocaleString("en-US", { timeZone: "America/Sao_Paulo" }));
+  const filename = `log-atividades-${brNow.getFullYear()}-${pad(brNow.getMonth() + 1)}-${pad(brNow.getDate())}-${pad(brNow.getHours())}${pad(brNow.getMinutes())}.pdf`;
 
   return new NextResponse(pdfBuffer, {
     headers: {
