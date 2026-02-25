@@ -54,7 +54,7 @@ export default async function ColecaoDetalhePage({ params, searchParams }: PageP
     atencao: 0,
     pendente: 0,
     em_andamento_dia: 0,
-    concluido: 0,
+    finalizada: 0,
   };
 
   const filteredReferencias = colecao.referencias.filter((ref) => {
@@ -68,14 +68,22 @@ export default async function ColecaoDetalhePage({ params, searchParams }: PageP
     // Determine category for counting
     let category = "";
 
+    // Verificar se a referência está finalizada (pelo status da referência)
+    if (ref.status === "finalizada") {
+      category = "finalizada";
+      counts.finalizada++;
+      if (!status || status === "todos") return true;
+      return status === category;
+    }
+
     if (!etapaInfo) {
       // Sem etapas ou todas concluídas
       if (ref.etapas.length === 0) {
         category = "pendente";
         counts.pendente++;
       } else {
-        category = "concluido";
-        counts.concluido++;
+        category = "em_andamento_dia";
+        counts.em_andamento_dia++;
       }
     } else if (statusEtapa === "pendente") {
       if (isOverdueItem) {

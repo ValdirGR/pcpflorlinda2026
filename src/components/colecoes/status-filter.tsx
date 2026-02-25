@@ -9,7 +9,7 @@ const statusOptions = [
     { label: "Atenção", value: "atencao", color: "bg-yellow-100 text-yellow-700 hover:bg-yellow-200" },
     { label: "Pendentes", value: "pendente", color: "bg-orange-100 text-orange-700 hover:bg-orange-200" },
     { label: "Em Andamento (Em Dia)", value: "em_andamento_dia", color: "bg-blue-100 text-blue-700 hover:bg-blue-200" },
-    { label: "Concluídos", value: "concluido", color: "bg-green-100 text-green-700 hover:bg-green-200" },
+    { label: "Finalizadas", value: "finalizada", color: "bg-green-100 text-green-700 hover:bg-green-200" },
 ];
 
 interface CollectionStatusFilterProps {
@@ -19,7 +19,7 @@ interface CollectionStatusFilterProps {
         atencao: number;
         pendente: number;
         em_andamento_dia: number;
-        concluido: number;
+        finalizada: number;
         [key: string]: number;
     };
 }
